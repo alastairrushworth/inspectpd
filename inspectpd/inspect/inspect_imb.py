@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from inspectpy.inspect_object.inspect_object import inspect_object
+from inspectpd.inspect_object.inspect_object import inspect_object
 
 def inspect_imb(df) :
   df_cat = df.select_dtypes(['category', 'object'])

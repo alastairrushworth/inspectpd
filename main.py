@@ -2,12 +2,6 @@
 
 # --> dtypes misses lists?
 
-# plots complete
-# --> inspect_na
-# --> inspect_imb
-# --> inspect_types
-# --> inspect_mem
-
 # package tasks
 # --> bundle data for examples??
 # --> tests for each of the 7 functions - compare to R pkg
@@ -18,8 +12,7 @@
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import inspectpy
+import inspectpd
 import plotnine as p9
 
 starwars = pd.read_csv('starwars.csv').drop('Unnamed: 0', axis = 1)
@@ -37,6 +30,9 @@ starwars.inspect_imb().show_plot()
 starwars.inspect_na().show_plot()
 # inspect_types
 starwars.inspect_types().show_plot()
+# inspect_num
+
+
 
 
 
@@ -47,10 +43,8 @@ starwars.inspect_types().show_plot()
 
 starwars.inspect_num()
 starwars.inspect_cor()
-starwars.inspect_types()
-starwars.inspect_mem()
 starwars.inspect_cat()
-starwars.inspect_imb()
+
 
 
 

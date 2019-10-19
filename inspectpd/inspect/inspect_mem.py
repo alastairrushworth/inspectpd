@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import sys as sys
-from inspectpy.inspect_object.inspect_object import inspect_object
+from inspectpd.inspect_object.inspect_object import inspect_object
 
 # inspect_mem  
 def inspect_mem(df) :
