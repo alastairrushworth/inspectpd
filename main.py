@@ -1,4 +1,5 @@
 #call("pip3 list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip3 install -U")
+# pip3 install git+https://github.com/alastairrushworth/inspectpd
 
 # --> dtypes misses lists?
 
@@ -16,11 +17,6 @@ import inspectpd
 import plotnine as p9
 
 starwars = pd.read_csv('starwars.csv').drop('Unnamed: 0', axis = 1)
-
-
-
-
-
 
 # inspect_mem
 starwars.inspect_mem().show_plot()
