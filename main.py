@@ -1,12 +1,12 @@
 #call("pip3 list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip3 install -U")
 
 # --> dtypes misses lists?
-# --> use get_dtypes_counts
 
 # plots complete
 # --> inspect_na
 # --> inspect_imb
 # --> inspect_types
+# --> inspect_mem
 
 # package tasks
 # --> bundle data for examples??
@@ -16,27 +16,28 @@
 
 # do an EDA kernel on kaggle when finished
 
-
-# create plotting functions for the above
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import inspectdf
+import inspectpy
 import plotnine as p9
 
 starwars = pd.read_csv('starwars.csv').drop('Unnamed: 0', axis = 1)
-starwars.inspect_types().show_plot()
 
 
 
 
 
 
+# inspect_mem
+starwars.inspect_mem().show_plot()
 # inspect_imb
 starwars.inspect_imb().show_plot()
 # inspect_na
 starwars.inspect_na().show_plot()
+# inspect_types
+starwars.inspect_types().show_plot()
+
 
 
 

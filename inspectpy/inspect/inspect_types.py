@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from inspectdf.inspect_object.inspect_object import inspect_object
+from inspectpy.inspect_object.inspect_object import inspect_object
 
 # inspect_types  
 def inspect_types(df) : 

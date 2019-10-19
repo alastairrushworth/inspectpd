@@ -29,4 +29,4 @@ def plot_types(df) :
     p9.geom_text(p9.aes(x = 'new_type', y = 'cnt_print_loc_pos', label = 'cnt', \
       fill = 'type'), inherit_aes = False, data = y2, color = 'gray', \
       angle = 90, vjust = 'bottom')  
-  return ggplt    
+  return ggplt  
