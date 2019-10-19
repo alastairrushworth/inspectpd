@@ -4,6 +4,7 @@ from inspectpd.plot.plot_na import plot_na
 from inspectpd.plot.plot_imb import plot_imb
 from inspectpd.plot.plot_types import plot_types
 from inspectpd.plot.plot_mem import plot_mem
+from inspectpd.plot.plot_num import plot_num
 
 # define a subclass with extra methods
 class inspect_object(pd.DataFrame):
@@ -32,4 +33,6 @@ class inspect_object(pd.DataFrame):
           out_plot = plot_types(self)
         if self.my_attr == 'inspect_mem' :
           out_plot = plot_mem(self)
+        if self.my_attr == 'inspect_num' :
+          out_plot = plot_num(self)
         return out_plot

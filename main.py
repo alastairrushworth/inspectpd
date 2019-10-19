@@ -1,8 +1,9 @@
 #call("pip3 list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip3 install -U")
-# pip3 install git+https://github.com/alastairrushworth/inspectpd
-
+# --> someway to display lists better in printed output
 # --> dtypes misses lists?
-
+# --> check num plot options - rows / columns
+# --> change string interbals in hist to tuple / list
+# above for inspectdf too
 # package tasks
 # --> bundle data for examples??
 # --> tests for each of the 7 functions - compare to R pkg
@@ -27,6 +28,15 @@ starwars.inspect_na().show_plot()
 # inspect_types
 starwars.inspect_types().show_plot()
 # inspect_num
+starwars.inspect_num().show_plot()
+
+
+
+
+# also add bytes / size columns to inspect_mem
+# build a new data set for both packages.  male / female cyclists?
+# --> turned pro age, retired age, career protour wins, weight, height
+# --> total wins, uci rankings, cyclist type, number of teams
 
 
 
@@ -37,9 +47,27 @@ starwars.inspect_types().show_plot()
 
 
 
-starwars.inspect_num()
-starwars.inspect_cor()
-starwars.inspect_cat()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 
+# starwars.inspect_num()
+# starwars.inspect_cor()
+# starwars.inspect_cat()
 
 
 
