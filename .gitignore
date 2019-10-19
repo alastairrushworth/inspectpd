@@ -5,3 +5,5 @@
 *.png
 __pycache__/
 *.py[cod]
+main.py
+*.Rmd
