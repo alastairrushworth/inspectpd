@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from inspectpd.inspect_object.inspect_object import inspect_object
 
 def inspect_num(df) :
   df_num = df.select_dtypes('double')
@@ -24,6 +25,6 @@ def inspect_num(df) :
     hist_list.append(zbins)
   # append the histogram lists as a new column
   out['hist'] = hist_list
-  # add type attribute to output
-  out.type = 'inspect_num'
+  # subclass output, adds plot methods
+  out = inspect_object(out, my_attr = 'inspect_num')
   return out
