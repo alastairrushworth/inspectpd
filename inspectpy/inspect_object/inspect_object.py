@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
-from inspectdf.plot.plot_na import plot_na
-from inspectdf.plot.plot_imb import plot_imb
-from inspectdf.plot.plot_types import plot_types
+from inspectpy.plot.plot_na import plot_na
+from inspectpy.plot.plot_imb import plot_imb
+from inspectpy.plot.plot_types import plot_types
+from inspectpy.plot.plot_mem import plot_mem
 
 # define a subclass with extra methods
 class inspect_object(pd.DataFrame):
@@ -29,4 +30,6 @@ class inspect_object(pd.DataFrame):
           out_plot = plot_imb(self)
         if self.my_attr == 'inspect_types' :
           out_plot = plot_types(self)
+        if self.my_attr == 'inspect_mem' :
+          out_plot = plot_mem(self)
         return out_plot

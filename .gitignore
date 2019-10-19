@@ -3,3 +3,5 @@
 .RData
 .Ruserdata
 *.png
+__pycache__/
+*.py[cod]
