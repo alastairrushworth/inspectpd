@@ -17,3 +17,9 @@ PandasObject.inspect_mem = inspect_mem
 PandasObject.inspect_cat = inspect_cat
 PandasObject.inspect_cor = inspect_cor
 PandasObject.inspect_num = inspect_num
+
+# import data
+from pandas import read_csv
+starwars = read_csv('inspectpd/data/starwars.csv', index_col = 0)
+tech = read_csv('inspectpd/data/tech.csv')
+tdf = read_csv('inspectpd/data/tdf.csv')

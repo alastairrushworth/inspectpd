@@ -7,3 +7,6 @@ __pycache__/
 *.py[cod]
 main.py
 *.Rmd
+*.png
+*.pdf
+example.py
