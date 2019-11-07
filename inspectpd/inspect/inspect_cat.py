@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
-
-# TODO
+from inspectpd.inspect_object.inspect_object import inspect_object
 
 # inspect_cat  
 def inspect_cat(df) :
@@ -13,7 +12,7 @@ def inspect_cat(df) :
   levels_list = []
   for col in df_cat.columns :
     col_vals = df_cat[col] \
-      .value_counts() \
+      .value_counts(dropna = False) \
       .reset_index(drop = False)
     col_vals.columns = ['value', 'cnt']  
     col_vals['pcnt'] = 100 * col_vals.cnt / np.sum(col_vals.cnt)
@@ -28,6 +27,6 @@ def inspect_cat(df) :
   out = out\
     .sort_values('col_name')\
     .reset_index(drop = True)
-  # add type attribute to output
-  out.type = 'inspect_cat'
+  # subclass output, adds plot methods
+  out = inspect_object(out, my_attr = 'inspect_cat')
   return out  
