@@ -9,16 +9,17 @@ def inspect_na(df) :
   df_nnl  = df_null\
     .sum()\
     .reset_index(drop = False)\
-    .rename(columns = {'index' : 'col_name', })
+    .rename(columns = {'index' : 'col_name', 0 :  'cnt'})
   # proportion of nulls
-  df_mnl  = df_null\
+  df_mnl = df_null\
     .mean()\
     .reset_index(drop = False)\
-    .rename(columns = {'index' : 'col_name'})  
+    .rename(columns = {'index' : 'col_name', 0 : 'pcnt'})
+  # convert proportion to percentage
+  df_mnl = df_mnl.assign(pcnt = df_mnl.pcnt * 100)
   # combine null summary into single df
   out = df_nnl.merge(df_mnl, on = 'col_name', how = 'left')
   out = out \
-    .rename({'0_x' : 'cnt', '0_y' : 'pcnt'}, axis = 'columns')\
     .sort_values('pcnt', ascending = False)\
     .reset_index(drop = True)
   # subclass output, adds plot methods
