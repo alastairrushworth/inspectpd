@@ -39,7 +39,7 @@ def inspect_cor(df, method = 'pearson', alpha = 0.05) :
     .drop(['abs_cor', 'se'], axis = 1)\
     .reset_index(drop = True)
   # add type attribute to output
-  out.type = 'inspect_cor'
+  out = inspect_object(out, my_attr = 'inspect_cor')
   return out
   
   

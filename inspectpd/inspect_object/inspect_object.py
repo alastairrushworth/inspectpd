@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from inspectpd.plot.plot_cat import plot_cat
+from inspectpd.plot.plot_cor import plot_cor
 from inspectpd.plot.plot_na import plot_na
 from inspectpd.plot.plot_imb import plot_imb
 from inspectpd.plot.plot_types import plot_types
@@ -28,6 +29,8 @@ class inspect_object(pd.DataFrame):
         # pick appropropriate plotting function based on my_attr
         if self.my_attr == 'inspect_cat' :
           out_plot = plot_cat(self)
+        if self.my_attr == 'inspect_cor' :
+          out_plot = plot_cor(self)
         if self.my_attr == 'inspect_na' :
           out_plot = plot_na(self)
         if self.my_attr == 'inspect_imb' :
