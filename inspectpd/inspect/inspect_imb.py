@@ -3,6 +3,32 @@ import numpy as np
 from inspectpd.inspect_object.inspect_object import inspect_object
 
 def inspect_imb(df) :
+  
+  '''
+  Summary of the most common levels in categorical columns
+  
+  Parameters
+  ----------
+  
+  df: A pandas dataframe.
+  
+  Returns  
+  ----------
+  
+  A pandas dataframe with columns:
+    + col_name: object
+      column of strings containing column names of df.
+    + value: object
+      column of strings containing the most common categorical level 
+      in each column of df.
+    + cnt: int64 
+      the number of occurrences of the most common categorical level 
+      in each column of df1.
+    + pcnt: float64
+      the relative frequency of each column's most common categorical 
+      level expressed as a percentage.
+  '''
+  
   df_cat = df.select_dtypes(['category', 'object'])
   # new df with columns names as first col
   out = pd.DataFrame(df_cat.columns, columns = ['col_name'])
