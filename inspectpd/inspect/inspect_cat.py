@@ -4,6 +4,32 @@ from inspectpd.inspect_object.inspect_object import inspect_object
 
 # inspect_cat  
 def inspect_cat(df) :
+  '''
+  Summary and comparison of the levels in categorical columns
+  
+  Parameters
+  ----------
+  
+  df: A pandas dataframe.
+  
+  Returns  
+  ----------
+  
+  A pandas dataframe with columns:
+    + col_name: object
+      column of strings containing column names of df
+    + cnt: int64
+      integer column containing count of unique levels 
+      found in each column of df.
+    + common: object
+      column of strings containing the name of the most common level
+    + common_pcnt: float64
+      the percentage of each column occupied by the most common level 
+      shown in common.
+    + levels: object
+      a list containing relative frequency dataframes for each column in df.
+  '''
+  
   # get the string / categorical columns
   df_cat = df.select_dtypes(['category', 'object'])
   # new df with columns names as first col

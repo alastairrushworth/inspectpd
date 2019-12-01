@@ -3,6 +3,31 @@ import numpy as np
 from inspectpd.inspect_object.inspect_object import inspect_object
 
 def inspect_num(df) :
+  '''
+  Summary and comparison of numeric columns
+  
+  Parameters
+  ----------
+  
+  df: A pandas dataframe.
+  
+  
+  Returns  
+  ----------
+  
+  A pandas dataframe with columns:
+    + col_name: object
+      column of strings containing column names of df
+    + min, q1, median, mean, q3, max and sd: float64
+      the minimum, lower quartile, median, mean, upper quartile, 
+      maximum and standard deviation for each numeric column.
+    + pcnt_na: float64
+      the percentage of each numeric feature that is missing
+    + hist: object
+      a list of tables containing the relative frequency of values
+      falling in bins determined by a set of breakpoints.
+      
+  '''
   df_num = df.select_dtypes('double')
   # construct output dataframe
   out = pd.DataFrame(df_num.columns, columns = ['col_name'])

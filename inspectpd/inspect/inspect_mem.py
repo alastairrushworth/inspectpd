@@ -5,6 +5,32 @@ from inspectpd.inspect_object.inspect_object import inspect_object
 
 # inspect_mem  
 def inspect_mem(df) :
+  '''
+  Summary of memory usage of dataframe columns
+  
+  Parameters
+  ----------
+  
+  df: A pandas dataframe.
+  
+  Returns  
+  ----------
+  
+  A pandas dataframe with columns:
+  
+    + col_name: object
+      column of strings containing column names of df
+    + bytes: int64
+      integer column containing the number of bytes in each column of df
+    + size: object
+      column of strings containing display-friendly memory usage in SI units
+      of each column.
+    + pcnt: float64
+      the percentage of the dataframe's total memory footprint used by each 
+      column.
+  '''
+  
+  
   out = df\
     .memory_usage(index=False, deep=True)\
     .sort_values(ascending = False)\

@@ -4,6 +4,28 @@ from inspectpd.inspect_object.inspect_object import inspect_object
 
 # inspect_types  
 def inspect_types(df) : 
+    '''
+  Summary and comparison of numeric columns
+  
+  Parameters
+  ----------
+  
+  df: A pandas dataframe.
+  
+  Returns  
+  ----------
+  
+  A pandas dataframe with columns:
+    + type: object
+      A column of strings containing the column types in df.
+    + cnt: int64
+      Integer count of each type found in df.
+    + pcnt: float64
+      Percentage of all columns with each type.
+    + col_name: object
+      Column of lists containing columns names with each type. 
+  '''
+  
   # column types in the df
   col_types = df\
     .dtypes\

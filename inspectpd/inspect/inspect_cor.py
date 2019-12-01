@@ -4,6 +4,40 @@ import numpy as np
 from inspectpd.inspect_object.inspect_object import inspect_object
 
 def inspect_cor(df, method = 'pearson', alpha = 0.05) :
+  '''
+  Tidy correlation coefficients for numeric dataframe columns.
+  
+  Parameters
+  ----------
+  
+  df: A pandas dataframe.
+  
+  method: str, default 'pearson'
+    a character string indicating which type of correlation 
+    coefficient to use, one of "pearson", "kendall", or "spearman".
+  
+  alpha: float, default 0.05.
+    Alpha level for correlation confidence intervals. Defaults to 0.05.
+    
+  Returns  
+  ----------
+  
+  A pandas dataframe with columns
+    + col_1, co1_2: object 
+      character columns containing names of numeric columns in df1.
+    + corr: float64
+      columns of correlation coefficients
+    + pcnt_nna: 
+      the number of pairs of observations that were non missing for each 
+      pair of columns. The correlation calculation used by .inspect_cor() 
+      uses only pairwise complete observations.
+    + p_value: float64
+      p-value associated with a test where the null hypothesis is 
+      that the numeric pair have 0 correlation.
+    + lower, upper: float64
+      lower and upper values of the confidence interval for the correlations.
+  '''
+
   out = df.corr(method = method)
   # get the number of variables
   nvarb = out.shape[0]
