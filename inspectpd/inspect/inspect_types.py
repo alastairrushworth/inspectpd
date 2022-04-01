@@ -4,7 +4,7 @@ from inspectpd.inspect_object.inspect_object import inspect_object
 
 # inspect_types  
 def inspect_types(df) : 
-    '''
+  '''
   Summary and comparison of numeric columns
   
   Parameters
