@@ -1,11 +1,11 @@
 # import inspect_ fns
-from .inspectpd.inspect.inspect_types import inspect_types
-from .inspectpd.inspect.inspect_na    import inspect_na
-from .inspectpd.inspect.inspect_cat   import inspect_cat
-from .inspectpd.inspect.inspect_cor   import inspect_cor
-from .inspectpd.inspect.inspect_imb   import inspect_imb
-from .inspectpd.inspect.inspect_mem   import inspect_mem
-from .inspectpd.inspect.inspect_num   import inspect_num
+from .inspect.inspect_types import inspect_types
+from .inspect.inspect_na    import inspect_na
+from .inspect.inspect_cat   import inspect_cat
+from .inspect.inspect_cor   import inspect_cor
+from .inspect.inspect_imb   import inspect_imb
+from .inspect.inspect_mem   import inspect_mem
+from .inspect.inspect_num   import inspect_num
 
 
 # monkey-patch as methods to pandas
