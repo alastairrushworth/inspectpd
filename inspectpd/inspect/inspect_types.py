@@ -27,8 +27,8 @@ def inspect_types(df) :
   '''
   
   # column types in the df
-  col_types = df\
-    .dtypes\
+  col_types = df \
+    .dtypes \
     .reset_index(drop = False)
   col_types.columns = ['column', 'type']
   # get totals for each type

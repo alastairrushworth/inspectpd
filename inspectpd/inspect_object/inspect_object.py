@@ -1,5 +1,4 @@
-import pandas as pd
-import numpy as np
+from pandas import DataFrame
 from inspectpd.plot.plot_cat import plot_cat
 from inspectpd.plot.plot_cor import plot_cor
 from inspectpd.plot.plot_na import plot_na
@@ -9,7 +8,7 @@ from inspectpd.plot.plot_mem import plot_mem
 from inspectpd.plot.plot_num import plot_num
 
 # define a subclass with extra methods
-class inspect_object(pd.DataFrame):
+class inspect_object(DataFrame):
     # This class variable tells Pandas the name of the attributes
     # that are to be ported over to derivative DataFrames.  There
     # is a method named `__finalize__` that grabs these attributes
@@ -24,8 +23,7 @@ class inspect_object(pd.DataFrame):
         # grab the keyword argument that is supposed to be my_attr
         self.my_attr = kwargs.pop('my_attr', None)
         super().__init__(*args, **kwargs)
-    def show_plot(self):
-        print(self.my_attr)
+    def view(self):
         # pick appropropriate plotting function based on my_attr
         if self.my_attr == 'inspect_cat' :
           out_plot = plot_cat(self)

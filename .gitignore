@@ -10,3 +10,5 @@ main.py
 *.png
 *.pdf
 example.py
+inspectpd.egg-info
+.ipynb_checkpoints

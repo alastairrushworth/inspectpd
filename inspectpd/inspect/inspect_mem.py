@@ -1,6 +1,4 @@
 import pandas as pd
-import numpy as np
-import sys as sys
 from inspectpd.inspect_object.inspect_object import inspect_object
 
 # inspect_mem  
@@ -31,9 +29,9 @@ def inspect_mem(df) :
   '''
   
   
-  out = df\
-    .memory_usage(index=False, deep=True)\
-    .sort_values(ascending = False)\
+  out = df \
+    .memory_usage(index=False, deep=True) \
+    .sort_values(ascending = False) \
     .reset_index(drop = False)
   out.columns = ['col_name', 'bytes']
   # add printable size strings
