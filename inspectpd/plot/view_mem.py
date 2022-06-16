@@ -22,11 +22,11 @@ def view_mem(df) :
   ggplt = ggplt + \
     p9.geom_text(p9.aes(x = 'new_cols', y = 'cnt_print_loc_neg', label = 'size', \
       fill = 'col_name'), inherit_aes = False, data = y1, color = 'white', \
-      angle = 90, vjust = 'top')
+      angle = 90, va = 'top')
   # add text labels to the lower bars
   y2 = x.copy()[x.pcnt <= 0.3 * np.max(x.pcnt)]
   ggplt = ggplt + \
     p9.geom_text(p9.aes(x = 'new_cols', y = 'cnt_print_loc_pos', label = 'size', \
       fill = 'col_name'), inherit_aes = False, data = y2, color = 'gray', \
-      angle = 90, vjust = 'bottom')  
+      angle = 90, va = 'bottom')  
   return ggplt    
