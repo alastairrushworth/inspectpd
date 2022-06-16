@@ -47,8 +47,8 @@ def inspect_imb(df) :
   out['value'] = [x.value[0] for x in levels_list]
   out['cnt'] = [x.cnt[0] for x in levels_list]
   out['pcnt'] = [x.pcnt[0] for x in levels_list]
-  out = out\
-    .sort_values('pcnt', ascending = False)\
+  out = out \
+    .sort_values('pcnt', ascending = False) \
     .reset_index(drop = True)
   # subclass output, adds plot methods
   out = inspect_object(out, my_attr = 'inspect_imb')

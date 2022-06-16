@@ -50,8 +50,8 @@ def inspect_cat(df) :
   out['common'] = [x.value[0] for x in levels_list]
   out['common_pcnt'] = [x.pcnt[0] for x in levels_list]
   out['levels'] = levels_list
-  out = out\
-    .sort_values('col_name')\
+  out = out \
+    .sort_values('col_name') \
     .reset_index(drop = True)
   # subclass output, adds plot methods
   out = inspect_object(out, my_attr = 'inspect_cat')
