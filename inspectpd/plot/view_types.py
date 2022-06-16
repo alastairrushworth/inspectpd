@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import plotnine as p9
 
-def plot_types(df) :
+def view_types(df) :
   x = df.copy()
   # initialise some extra columns useful for plotting
   x['new_type'] = [str(i) for i in x['type']]

@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import plotnine as p9
 
-def plot_mem(df) :
+def view_mem(df) :
   x = df.copy()
   # initialise some extra columns useful for plotting
   x['new_cols'] = [str(i) for i in x['col_name']]

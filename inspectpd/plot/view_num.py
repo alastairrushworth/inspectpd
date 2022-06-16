@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import plotnine as p9
 
-def plot_num(df) :
+def view_num(df) :
   x = df.copy()
   # add group column to the 
   z = x['hist'].to_list()

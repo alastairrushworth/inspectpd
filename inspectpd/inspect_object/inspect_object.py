@@ -1,11 +1,11 @@
 from pandas import DataFrame
-from inspectpd.plot.plot_cat import plot_cat
-from inspectpd.plot.plot_cor import plot_cor
-from inspectpd.plot.plot_na import plot_na
-from inspectpd.plot.plot_imb import plot_imb
-from inspectpd.plot.plot_types import plot_types
-from inspectpd.plot.plot_mem import plot_mem
-from inspectpd.plot.plot_num import plot_num
+from inspectpd.plot.view_cat import view_cat
+from inspectpd.plot.view_cor import view_cor
+from inspectpd.plot.view_na import view_na
+from inspectpd.plot.view_imb import view_imb
+from inspectpd.plot.view_types import view_types
+from inspectpd.plot.view_mem import view_mem
+from inspectpd.plot.view_num import view_num
 
 # define a subclass with extra methods
 class inspect_object(DataFrame):
@@ -26,17 +26,17 @@ class inspect_object(DataFrame):
     def view(self):
         # pick appropropriate plotting function based on my_attr
         if self.my_attr == 'inspect_cat' :
-          out_plot = plot_cat(self)
+          out_plot = view_cat(self)
         if self.my_attr == 'inspect_cor' :
-          out_plot = plot_cor(self)
+          out_plot = view_cor(self)
         if self.my_attr == 'inspect_na' :
-          out_plot = plot_na(self)
+          out_plot = view_na(self)
         if self.my_attr == 'inspect_imb' :
-          out_plot = plot_imb(self)
+          out_plot = view_imb(self)
         if self.my_attr == 'inspect_types' :
-          out_plot = plot_types(self)
+          out_plot = view_types(self)
         if self.my_attr == 'inspect_mem' :
-          out_plot = plot_mem(self)
+          out_plot = view_mem(self)
         if self.my_attr == 'inspect_num' :
-          out_plot = plot_num(self)
+          out_plot = view_num(self)
         return out_plot
