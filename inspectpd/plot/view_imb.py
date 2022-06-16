@@ -16,17 +16,18 @@ def view_imb(df) :
     + p9.guides(fill = False) \
     + p9.ylab('% of values') \
     + p9.xlab('') \
-    + p9.theme(axis_text_x=p9.element_text(rotation = 45, hjust=1)) 
+    + p9.theme(axis_text_x=p9.element_text(rotation = 45, hjust = 1)) 
   # add text labels to the highest bars
   y1 = x.copy()[x.pcnt > 0.3 * np.max(x.pcnt)]
   ggplt = ggplt + \
     p9.geom_text(p9.aes(x = 'col_name', y = 'pcnt_print_loc_neg', label = 'value', \
       fill = 'col_name'), inherit_aes = False, data = y1, color = 'white', \
-      angle = 90, vjust = 'top')
+      angle = 90, va = 'top')
   # add text labels to the lower bars
   y2 = x.copy()[x.pcnt <= 0.3 * np.max(x.pcnt)]
   ggplt = ggplt + \
     p9.geom_text(p9.aes(x = 'col_name', y = 'pcnt_print_loc_pos', label = 'value', \
       fill = 'col_name'), inherit_aes = False, data = y2, color = 'gray', \
-      angle = 90, vjust = 'bottom')  
+      angle = 90, va = 'bottom')  
+
   return ggplt

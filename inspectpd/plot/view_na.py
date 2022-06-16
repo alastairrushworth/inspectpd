@@ -21,12 +21,12 @@ def view_na(df) :
   ggplt = ggplt + \
     p9.geom_text(p9.aes(x = 'col_name', y = 'pcnt_print_loc_neg', label = 'pcnt_print', \
       fill = 'col_name'), inherit_aes = False, data = y1, color = 'white', \
-      angle = 90, vjust = 'top')
+      angle = 90, va = 'top')
   # add text labels to the lower bars
   y2 = x.copy()[x.pcnt <= 0.3 * np.max(x.pcnt)]
   ggplt = ggplt + \
     p9.geom_text(p9.aes(x = 'col_name', y = 'pcnt_print_loc_pos', label = 'pcnt_print', \
       fill = 'col_name'), inherit_aes = False, data = y2, color = 'gray', \
-      angle = 90, vjust = 'bottom')  
+      angle = 90, va = 'bottom')  
   # return the ggplot object
   return ggplt
