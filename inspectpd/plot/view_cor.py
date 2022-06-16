@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import plotnine as p9
 
-def plot_cor(df) :
+def view_cor(df) :
   # drop missing correlations
   out = df[~df['corr'].isnull()]
   # add pair column

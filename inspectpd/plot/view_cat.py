@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import plotnine as p9
 
-def plot_cat(df) :
+def view_cat(df) :
   lvl_list = []
   # add on the feature name to the levels dfs
   for i in range(df.shape[0]) :
