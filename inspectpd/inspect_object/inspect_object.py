@@ -19,24 +19,41 @@ class inspect_object(DataFrame):
         def _c(*args, **kwargs):
             return inspect_object(*args, **kwargs).__finalize__(self)
         return _c
+
     def __init__(self, *args, **kwargs):
         # grab the keyword argument that is supposed to be my_attr
         self.my_attr = kwargs.pop('my_attr', None)
         super().__init__(*args, **kwargs)
-    def view(self):
+
+    def view(self, **kwargs):
+        '''
+        Visualise a data frame summary
+        
+        Parameters
+        ----------
+        
+        + high_cardinality: int64 
+          for inspect_cat only, pools together feature values with this number or fewer occurences.
+          Set this to 1 or more where categories have many unique or near-unique levels.
+        Returns  
+        ----------
+        
+        A plotnine `ggplot` object
+        '''
+
         # pick appropropriate plotting function based on my_attr
         if self.my_attr == 'inspect_cat' :
-          out_plot = view_cat(self)
+          out_plot = view_cat(self, **kwargs)
         if self.my_attr == 'inspect_cor' :
-          out_plot = view_cor(self)
+          out_plot = view_cor(self, **kwargs)
         if self.my_attr == 'inspect_na' :
-          out_plot = view_na(self)
+          out_plot = view_na(self, **kwargs)
         if self.my_attr == 'inspect_imb' :
-          out_plot = view_imb(self)
+          out_plot = view_imb(self, **kwargs)
         if self.my_attr == 'inspect_types' :
-          out_plot = view_types(self)
+          out_plot = view_types(self, **kwargs)
         if self.my_attr == 'inspect_mem' :
-          out_plot = view_mem(self)
+          out_plot = view_mem(self, **kwargs)
         if self.my_attr == 'inspect_num' :
-          out_plot = view_num(self)
+          out_plot = view_num(self, **kwargs)
         return out_plot
