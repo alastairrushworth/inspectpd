@@ -4,6 +4,32 @@ import plotnine as p9
 
 def view_types(df) :
   x = df.copy()
+
+  # code on the backburner until plotnine as coord_polar....
+  # columns_layout = xx \
+  #     .explode('col_name') \
+  #     .drop(columns = ['cnt', 'pcnt']) \
+  #     .assign(ones = 1) \
+  #     .assign(tops = lambda x : np.cumsum(x.ones) / x.ones.sum()) \
+  #     .assign(bottoms = lambda x : [0] + x.tops[:-1].tolist()) \
+  #     .assign(label_pos = lambda x : (x.tops + x.bottoms) / 2) \
+  #     .assign(text_just  = lambda x : ['right' if y > 0.5 else 'left' for y in x.label_pos]) \
+  #     .assign(text_rotn = lambda x : [-1 if y > 0.5 else 1 for y in x.label_pos]) \
+  #     .assign(text_rotn = lambda x : (x.text_rotn * 90) - (x.label_pos * 360))
+  # types_layout = columns_layout \
+  #     .groupby('type') \
+  #     .size() \
+  #     .sort_values(ascending = False) \
+  #     .reset_index(drop = False) \
+  #     .rename(columns = {0 : 'n'}) \
+  #     .assign(tops = lambda x : np.cumsum(x.n) / x.n.sum()) \
+  #     .assign(bottoms = lambda x : [0] + x.tops[:-1].tolist()) \
+  #     .assign(label_pos = lambda x : (x.tops + x.bottoms) / 2) \
+  #     .assign(text_just  = lambda x : ['right' if y > 0.5 else 'left' for y in x.label_pos]) \
+  #     .assign(text_rotn = lambda x : [-1 if y > 0.5 else 1 for y in x.label_pos]) \
+  #     .assign(text_rotn = lambda x : (x.text_rotn * 90) - (x.label_pos * 360))
+
+
   # initialise some extra columns useful for plotting
   x['new_type'] = [str(i) for i in x['type']]
   x['new_type']   = pd.Categorical(x['new_type'], categories = x['new_type'], ordered = True)
