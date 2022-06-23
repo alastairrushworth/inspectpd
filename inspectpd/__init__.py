@@ -21,5 +21,4 @@ PandasObject.inspect_num = inspect_num
 # import data
 from pandas import read_csv
 starwars = read_csv('inspectpd/data/starwars.csv', index_col = 0)
-tech = read_csv('inspectpd/data/tech.csv')
 tdf = read_csv('inspectpd/data/tdf.csv')
