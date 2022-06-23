@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from inspectpd.inspect_object.inspect_object import inspect_object
 
-def inspect_cor(df, method = 'pearson', alpha = 0.05) :
+def inspect_cor(df, method='pearson', alpha=0.05, with_col=None) :
   '''
   Tidy correlation coefficients for numeric dataframe columns.
   
@@ -15,9 +15,13 @@ def inspect_cor(df, method = 'pearson', alpha = 0.05) :
   method: str, default 'pearson'
     a character string indicating which type of correlation 
     coefficient to use, one of "pearson", "kendall", or "spearman".
-  
+
   alpha: float, default 0.05.
     Alpha level for correlation confidence intervals. Defaults to 0.05.
+  
+  with_col: str, default None
+    Column name to filter correlations by.  Uses pandas .withcorr() under
+    the hood instead of .corr(), which can save time for large data sets.
     
   Returns  
   ----------
@@ -37,22 +41,31 @@ def inspect_cor(df, method = 'pearson', alpha = 0.05) :
     + lower, upper: float64
       lower and upper values of the confidence interval for the correlations.
   '''
+  df_num = df.select_dtypes('number').copy()
+  if with_col is None :
+    out = df_num.corr(method = method)
+    # get the number of variables
+    nvarb = out.shape[0]
+    # unpivot the correlation matrix
+    out = out.unstack().reset_index(drop = False)
+    # rename columns
+    out.columns = ['col_1', 'col_2', 'corr']
+    # row index of off diagonal elements
+    inds = [(np.arange(i + 1) + i * nvarb).tolist() for i in range(nvarb)]
+    inds  = [j for i in inds for j in i]
+    # drop off diagonals
+    out = out[~out.index.isin(inds)].reset_index(drop = True)
+  else :
+    out = df_num.corrwith(df_num[with_col]).reset_index(drop = False)
+    out['col_2'] = with_col
+    # rename columns and reorder
+    out.columns = ['col_1', 'corr', 'col_2']
+    out = out[['col_1', 'col_2', 'corr']]
 
-  out = df.corr(method = method)
-  # get the number of variables
-  nvarb = out.shape[0]
-  # unpivot the correlation matrix
-  out = out.unstack().reset_index(drop = False)
-  out.columns = ['col_1', 'col_2', 'corr']
-  # row index of off diagonal elements
-  inds = [(np.arange(i + 1) + i * nvarb).tolist() for i in range(nvarb)]
-  inds  = [j for i in inds for j in i]
-  # drop off diagonals
-  out = out[~out.index.isin(inds)].reset_index(drop = True)
+  # remove self-correlations
+  out = out.query('col_1 != col_2').reset_index(drop = True)
   # get pairwise non-na
-  cor_cols   = list(set(out.col_1.to_list() + out.col_2.to_list()))
-  df_numeric = df[cor_cols]
-  df_null    = 1 - df_numeric.isnull().astype('int')
+  df_null    = 1 - df_num.isnull().astype('int')
   nna_mat    = df_null.transpose().dot(df_null)
   nna_df     = nna_mat.unstack().reset_index(drop = False)
   nna_df.columns = ['col_1', 'col_2', 'nna']
