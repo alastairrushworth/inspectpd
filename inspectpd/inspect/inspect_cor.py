@@ -31,15 +31,15 @@ def inspect_cor(df, method='pearson', alpha=0.05, with_col=None) :
       character columns containing names of numeric columns in df1.
     + corr: float64
       columns of correlation coefficients
-    + pcnt_nna: 
-      the number of pairs of observations that were non missing for each 
-      pair of columns. The correlation calculation used by .inspect_cor() 
-      uses only pairwise complete observations.
     + p_value: float64
       p-value associated with a test where the null hypothesis is 
       that the numeric pair have 0 correlation.
     + lower, upper: float64
       lower and upper values of the confidence interval for the correlations.
+    + pcnt_na: 
+      the number of pairs of observations that were non missing for each 
+      pair of columns. The correlation calculation used by .inspect_cor() 
+      uses only pairwise complete observations.
   '''
   df_num = df.select_dtypes('number').copy()
   if with_col is None :
@@ -72,7 +72,7 @@ def inspect_cor(df, method='pearson', alpha=0.05, with_col=None) :
   # add standard errors
   nna_df = nna_df.assign(se = (1 / np.sqrt(nna_df.nna - 3)))
   nna_df     = nna_df \
-    .assign(pcnt_nna = 100 * nna_df.nna / df.shape[0]) \
+    .assign(pcnt_na = 100 * nna_df.nna / df.shape[0]) \
     .drop('nna', axis = 1)
   # join pairwise nna to the output df
   out = out.merge(nna_df, how = 'left', on = ['col_1', 'col_2'])
@@ -85,6 +85,8 @@ def inspect_cor(df, method='pearson', alpha=0.05, with_col=None) :
     .sort_values('abs_cor', ascending = False) \
     .drop(['abs_cor', 'se'], axis = 1) \
     .reset_index(drop = True)
+  # change order of output columns
+  out = out[['col_1', 'col_2', 'corr', 'p_value', 'lower', 'upper', 'pcnt_na']]
   # add type attribute to output
   out = inspect_object(out, my_attr = 'inspect_cor')
   return out
