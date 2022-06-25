@@ -2,20 +2,22 @@ import pandas as pd
 import numpy as np
 import plotnine as p9
 
-def view_cor(df) :
+def view_cor(df, max = 20) :
   if df.shape[0] == 0 :
     raise RuntimeError('No numeric correlations to show')
   # drop missing correlations
   out = df[~df['corr'].isnull()]
   if out.shape[0] == 0 :
     raise RuntimeError('All correlations are NaN')
+  # filter to 'max' pairs
+  if max is not None :
+    out = out.iloc[:max,:]
   # add pair column
   out = out.assign(pair = out.col_1 + '&' + out.col_2)
   # add a sign column
   sign = ((out['corr'] > 0).astype('int')).to_list()
   sign = [['Negative', 'Positive'][i] for i in sign]
   out['sign'] = sign
-  #out  = out.sort_values('pair', ascending = False).reset_index(drop = True)
   # add ind column
   out['ind'] = [out.shape[0] - i for i in range(out.shape[0])]
   # plot using bands
