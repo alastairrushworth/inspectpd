@@ -35,6 +35,8 @@ class inspect_object(DataFrame):
         + high_cardinality: int64 
           for inspect_cat only, pools together feature values with this number or fewer occurences.
           Set this to 1 or more where categories have many unique or near-unique levels.
+        + max: int64 
+          for `inspect_cor()` the maxmimum number of correlation pairs to visualise
         Returns  
         ----------
         
