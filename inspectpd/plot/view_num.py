@@ -3,6 +3,8 @@ import numpy as np
 import plotnine as p9
 
 def view_num(df) :
+  if df.shape[0] == 0 :
+    raise RuntimeError('No numeric columns to view')
   x = df.copy()
   # add group column to the 
   z = x['hist'].to_list()

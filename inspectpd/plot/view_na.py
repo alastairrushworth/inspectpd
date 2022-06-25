@@ -1,10 +1,11 @@
 import pandas as pd
 import numpy as np
 import plotnine as p9
-from inspectpd.plot.utils import text_sizer, check_summary
+from inspectpd.plot.utils import text_sizer
 
 def view_na(df) :
-  check_summary(df)
+  if df.shape[0] == 0 :
+    raise RuntimeError('No columns in dataframe to view')
   x = df.copy()
   # initialise some extra columns useful for plotting
   x['col_name']   = pd.Categorical(x['col_name'], categories = x['col_name'], ordered = True)
