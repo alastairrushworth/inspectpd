@@ -3,8 +3,12 @@ import numpy as np
 import plotnine as p9
 
 def view_cor(df) :
+  if df.shape[0] == 0 :
+    raise RuntimeError('No numeric correlations to show')
   # drop missing correlations
   out = df[~df['corr'].isnull()]
+  if out.shape[0] == 0 :
+    raise RuntimeError('All correlations are NaN')
   # add pair column
   out = out.assign(pair = out.col_1 + '&' + out.col_2)
   # add a sign column

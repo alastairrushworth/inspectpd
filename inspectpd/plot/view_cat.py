@@ -1,8 +1,11 @@
 import pandas as pd
 import numpy as np
 import plotnine as p9
+from inspectpd.plot.utils import text_sizer
 
 def view_cat(df, high_cardinality = 0) :
+  if df.shape[0] == 0 :
+    raise RuntimeError('No categorical or object columns to view')
   # extract the level frequencies from the inspect_cat df
   levels_list = [x for x in df.levels]
   # loop over, add extra columns
