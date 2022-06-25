@@ -9,10 +9,10 @@ def view_imb(df) :
   x = df.copy()
   # initialise some extra columns useful for plotting
   x['col_name']   = pd.Categorical(x['col_name'], categories = x['col_name'], ordered = True)
-  x['pcnt_print'] = np.round(x.pcnt.values * 100, 1)
-  x['pcnt_print_loc_pos'] = (x.pcnt.values * 100) + (np.max(x.pcnt.values) * 100)/70
-  x['pcnt_print_loc_neg'] = (x.pcnt.values * 100) - (np.max(x.pcnt.values) * 100)/70
-  x['pcnt'] = x.pcnt.values * 100
+  x['pcnt_print'] = np.round(x.pcnt.values, 1)
+  x['pcnt_print_loc_pos'] = x.pcnt.values + np.max(x.pcnt.values) / 70
+  x['pcnt_print_loc_neg'] = x.pcnt.values - np.max(x.pcnt.values) / 70
+  x['pcnt'] = x.pcnt.values
   # build basic plot
   ggplt = p9.ggplot(x, p9.aes(x = 'col_name', y = 'pcnt', fill = 'col_name'))\
     + p9.geom_bar(stat = 'identity')\
