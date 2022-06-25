@@ -77,8 +77,11 @@ def inspect_cor(df, method='pearson', alpha=0.05, with_col=None) :
   # join pairwise nna to the output df
   out = out.merge(nna_df, how = 'left', on = ['col_1', 'col_2'])
   out['p_value'] = 2 * st.norm.cdf(-np.abs(out['corr'].values / out.se))
+  # swicth off divide by zero error pinged by numpy with arctans
+  np.seterr(all = 'ignore') 
   out['lower'] = np.tanh(np.arctanh(out['corr'].values) - st.norm.ppf(1 - alpha / 2) * out.se)
   out['upper'] = np.tanh(np.arctanh(out['corr'].values) + st.norm.ppf(1 - alpha / 2) * out.se)
+  np.seterr(all = 'warn') 
   # sort by absolute value of corr
   out = out \
     .assign(abs_cor = np.abs(out['corr'].values)) \
