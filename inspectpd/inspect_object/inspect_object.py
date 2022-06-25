@@ -9,10 +9,6 @@ from inspectpd.plot.view_num import view_num
 
 # define a subclass with extra methods
 class inspect_object(DataFrame):
-    # This class variable tells Pandas the name of the attributes
-    # that are to be ported over to derivative DataFrames.  There
-    # is a method named `__finalize__` that grabs these attributes
-    # and assigns them to newly created `SomeData`
     _metadata = ['my_attr']
     @property
     def _constructor(self):
@@ -27,7 +23,7 @@ class inspect_object(DataFrame):
 
     def view(self, **kwargs):
         '''
-        Visualise a data frame summary
+        Quickly and easily visualise a data frame summary
         
         Parameters
         ----------
@@ -37,10 +33,12 @@ class inspect_object(DataFrame):
           Set this to 1 or more where categories have many unique or near-unique levels.
         + max: int64 
           for `inspect_cor()` the maxmimum number of correlation pairs to visualise
+        
         Returns  
         ----------
         
-        A plotnine `ggplot` object
+        A plotnine `ggplot` object.
+
         '''
 
         # pick appropropriate plotting function based on my_attr
