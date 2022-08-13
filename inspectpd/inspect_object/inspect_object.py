@@ -21,7 +21,7 @@ class inspect_object(DataFrame):
         self.my_attr = kwargs.pop('my_attr', None)
         super().__init__(*args, **kwargs)
 
-    def view(self, **kwargs):
+    def plot(self, **kwargs):
         '''
         Quickly and easily visualise a data frame summary
         
