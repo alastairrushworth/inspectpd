@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from inspectpd.inspect_object.inspect_object import inspect_object
 
 def inspect_num(df) :
@@ -33,9 +32,10 @@ def inspect_num(df) :
   out = pd.DataFrame(df_num.columns, columns = ['col_name'])
   # get numerical summaries
   out['min'] = df_num.min().values
-  out['q1']  = df_num.apply(lambda x : np.nanpercentile(x, q = 0.25), axis = 0).values
-  out['median'] = df_num.apply(lambda x : np.nanpercentile(x, q = 0.5), axis = 0).values
-  out['q3']  = df_num.apply(lambda x : np.nanpercentile(x, q = 0.75), axis = 0).values
+  out['q1']  = df_num.quantile(0.25).values
+  out['median'] = df_num.median().values
+  out['mean'] = df_num.mean().values
+  out['q3']  = df_num.quantile(0.75).values
   out['max'] = df_num.max().values
   out['sd'] = df_num.std().values
   out['pcnt_na'] = df_num.isnull().mean().values * 100
