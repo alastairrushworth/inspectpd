@@ -18,18 +18,28 @@ in the following methods for pandas objects:
   - [`.inspect_num()`](#numeric-summaries) summaries of numeric columns
   - [`.inspect_cat()`](#categorical-levels) summaries of non-numeric
 
-## Installation
+## Installation and use
 
 You can install `inspectpd` using `pip`:
 
-``` r
+```python
 pip install git+https://github.com/alastairrushworth/inspectpd
 ```
 
-## Comments? Suggestions? Issues?
+Simply import the package and use the methods on a pandas dataframe:
 
-The package is in early stages of development, could break and will
-change rapidly. A future version will be released to PyPi. In the
-meantime, any feedback is definitely welcome\! Feel free to write a
-github issue or send me a message on
-[twitter](https://twitter.com/rushworth_a).
+```
+import inspectpd
+# example data set for illustration
+from inspectpd import starwars
+
+# categorical features summary
+starwars.inspect_cat()
+```
+
+You can also get a quick visualisation of the summary too:
+
+```
+# get a plot of the categorical features
+starwars.inspect_cat().view()
+```
