@@ -20,17 +20,18 @@ in the following methods for pandas objects:
 
 ## Installation and use
 
-You can install `inspectpd` using `pip`:
+You can install `inspectpd` using `pip` with
 
 ```python
-pip install git+https://github.com/alastairrushworth/inspectpd
+pip install inspectpd
 ```
 
 Simply import the package and use the methods on a pandas dataframe:
 
 ```
+import pandas as pd
 import inspectpd
-# example data set for illustration
+# example data set just for illustration
 from inspectpd import starwars
 
 # categorical features summary
