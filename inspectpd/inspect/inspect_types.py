@@ -35,9 +35,9 @@ def inspect_types(df) :
   out = pd.DataFrame(col_types.type.value_counts())\
     .reset_index(drop = False)
   # get percentage of columns with each type
-  out['pcnt'] = 100 * out.type / np.sum(out.type)
+  out['pcnt'] = 100 * out['count'] / np.sum(out['count'])
   # rename columns
-  out = out.rename(columns = {'index' : 'type', 'type' : 'cnt'})
+  out = out.rename(columns = {'count' : 'cnt'})
   # get names of columns with each type
   col_list = []
   for j in out.type :
