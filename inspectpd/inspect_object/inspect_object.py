@@ -1,11 +1,11 @@
 from pandas import DataFrame
-from inspectpd.plot.view_cat import view_cat
-from inspectpd.plot.view_cor import view_cor
-from inspectpd.plot.view_na import view_na
-from inspectpd.plot.view_imb import view_imb
-from inspectpd.plot.view_types import view_types
-from inspectpd.plot.view_mem import view_mem
-from inspectpd.plot.view_num import view_num
+from inspectpd.view.view_cat import view_cat
+from inspectpd.view.view_cor import view_cor
+from inspectpd.view.view_na import view_na
+from inspectpd.view.view_imb import view_imb
+from inspectpd.view.view_types import view_types
+from inspectpd.view.view_mem import view_mem
+from inspectpd.view.view_num import view_num
 
 # define a subclass with extra methods
 class inspect_object(DataFrame):
@@ -21,7 +21,7 @@ class inspect_object(DataFrame):
         self.my_attr = kwargs.pop('my_attr', None)
         super().__init__(*args, **kwargs)
 
-    def plot(self, **kwargs):
+    def view(self, **kwargs):
         '''
         Quickly and easily visualise a data frame summary
         
@@ -37,7 +37,7 @@ class inspect_object(DataFrame):
         Returns  
         ----------
         
-        A plotnine `ggplot` object.
+        A viewnine `ggplot` object.
 
         '''
 
