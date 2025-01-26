@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import plotnine as p9
-from inspectpd.plot.utils import text_sizer
+from inspectpd.view.utils import text_sizer
 
 def view_cat(df, high_cardinality = 0) :
   if df.shape[0] == 0 :
@@ -33,7 +33,7 @@ def view_cat(df, high_cardinality = 0) :
   zz = zz.assign(alpha = zz.alpha.fillna(100.0))
   # basic plot object
   gg_out = \
-    p9.ggplot(p9.aes(x = 'feature', y = 'pcnt', fill = 'feature', alpha = 'alpha'), data = zz) \
+    p9.ggplot(zz, p9.aes(x = 'feature', y = 'pcnt', fill = 'feature', alpha = 'alpha')) \
       + p9.geom_col(position = 'stack', color = "black") \
       + p9.guides(fill = False, alpha = False) \
       + p9.coord_flip() + p9.xlab("") + p9.ylab("") \

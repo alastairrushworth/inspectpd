@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import plotnine as p9
-from inspectpd.plot.utils import text_sizer
+from inspectpd.view.utils import text_sizer
 
 def view_types(df) :
   if df.shape[0] == 0 :
