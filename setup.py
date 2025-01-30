@@ -10,7 +10,5 @@ setup(
       license = 'MIT',
       packages = ['inspectpd'],
       install_requires = ['numpy', 'pandas', 'plotnine', 'scipy'],
-      zip_safe = False, 
-      test_suite='nose.collector',
-      tests_require=['nose']
+      zip_safe = False
       )
