@@ -1,0 +1,46 @@
+name: Release to PyPI
+
+# Fires when a version tag is pushed: git tag v0.2.0 && git push origin v0.2.0
+on:
+  push:
+    tags:
+      - "v[0-9]+.*"
+
+permissions:
+  contents: write  # to create the GitHub Release
+  id-token: write  # for OIDC Trusted Publisher authentication with PyPI
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    # The "pypi" environment adds a required-reviewer gate in GitHub.
+    # Create it at: Settings → Environments → New environment → pypi
+    environment: pypi
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history needed so hatch-vcs can derive the version from the tag.
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Build sdist and wheel
+        run: uv build
+
+      - name: Publish to PyPI
+        # Uses OIDC Trusted Publisher — no API token required.
+        # One-time setup on PyPI: https://pypi.org/manage/account/publishing/
+        #   Owner: alastairrushworth  Repo: inspectpd
+        #   Workflow: release.yml     Environment: pypi
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

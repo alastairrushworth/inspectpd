@@ -68,3 +68,28 @@ uv run ruff format .
 # build the sdist and wheel
 uv build
 ```
+
+## Releasing to PyPI
+
+The package version is derived from git tags via `hatch-vcs`. To cut a release:
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+This triggers `.github/workflows/release.yml`, which builds the wheel and sdist, creates
+a GitHub Release, and publishes to PyPI via OIDC (no API token needed).
+
+**One-time PyPI setup** (Trusted Publisher): go to
+<https://pypi.org/manage/account/publishing/> and add a publisher with:
+
+| Field | Value |
+|---|---|
+| Owner | `alastairrushworth` |
+| Repository | `inspectpd` |
+| Workflow | `release.yml` |
+| Environment | `pypi` |
+
+Then create a matching **`pypi` environment** in the repo at
+Settings → Environments → New environment.
