@@ -1,13 +1,13 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
 name = "inspectpd"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Inspection, comparison and visualisation of pandas data frames"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE.txt"]
 authors = [
@@ -19,7 +19,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -50,6 +49,9 @@ dev = [
     "build",
 ]
 
+[tool.hatch.version]
+source = "vcs"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/inspectpd"]
 
@@ -62,7 +64,7 @@ addopts = "-ra"
 
 [tool.ruff]
 line-length = 88
-target-version = "py39"
+target-version = "py310"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
