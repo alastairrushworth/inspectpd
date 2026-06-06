@@ -10,7 +10,23 @@ main.py
 *.png
 *.pdf
 example.py
-inspectpd.egg-info
 .ipynb_checkpoints
 *.ipynb
+
+# Python packaging / build artifacts
 build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+
+# Tooling caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/

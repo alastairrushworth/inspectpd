@@ -2,11 +2,24 @@ name: Python Package CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Run pre-commit (ruff lint + format)
+        run: uvx pre-commit run --all-files --show-diff-on-failure
+
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -15,39 +28,62 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        
-    - name: Install build dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install build wheel
+      - uses: actions/checkout@v4
 
-    - name: Build package
-      run: python -m build
-      
-    - name: Install package with test dependencies
-      run: |
-        # Install the package in editable mode with [test] extras
-        python -m pip install -e ".[test]"
-        # Also install pytest explicitly in case it's not in your test dependencies
-        python -m pip install pytest pytest-cov
-        
-    - name: Test import
-      run: |
-        python -c "import warnings; warnings.filterwarnings('error'); import inspectpd"
-        
-    - name: Run tests
-      run: |
-        # Run tests from the root directory to ensure proper package import
-        python -m pytest --cov=inspectpd/inspectpd tests/ --cov-report=xml
-        
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install the project
+        run: uv sync --python ${{ matrix.python-version }}
+
+      - name: Test import (warnings as errors)
+        run: uv run --python ${{ matrix.python-version }} python -c "import warnings; warnings.filterwarnings('error'); import inspectpd"
+
+      - name: Run tests
+        run: uv run --python ${{ matrix.python-version }} pytest --cov=inspectpd tests/ --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Build sdist and wheel
+        run: uv build
+
+      - name: Verify wheel contents (subpackages + data files)
+        run: |
+          python -m zipfile -l dist/*.whl
+          for path in \
+            inspectpd/__init__.py \
+            inspectpd/inspect/inspect_cat.py \
+            inspectpd/view/view_cat.py \
+            inspectpd/inspect_object/inspect_object.py \
+            inspectpd/data/starwars.csv \
+            inspectpd/data/tdf.csv; do
+            python -m zipfile -l dist/*.whl | grep -q "$path" \
+              || { echo "MISSING from wheel: $path"; exit 1; }
+          done
+          echo "Wheel contains all subpackages and data files."
+
+      - name: Smoke-test the built wheel outside the repo
+        run: |
+          python -m venv /tmp/wheeltest
+          /tmp/wheeltest/bin/pip install --quiet dist/*.whl
+          cd /tmp
+          /tmp/wheeltest/bin/python -c "import inspectpd as i; print(i.starwars.shape); i.starwars.inspect_cat()"
