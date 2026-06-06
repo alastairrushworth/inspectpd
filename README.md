@@ -44,3 +44,27 @@ You can also get a quick visualisation of the summary too:
 # get a plot of the categorical features
 starwars.inspect_cat().view()
 ```
+
+## Development
+
+This project uses [uv](https://docs.astral.sh/uv/) for environment management
+and [pre-commit](https://pre-commit.com/) with [ruff](https://docs.astral.sh/ruff/)
+for linting and formatting.
+
+```bash
+# create the dev environment and install inspectpd (editable) + dev tools
+uv sync
+
+# install the git hooks
+uv run pre-commit install
+
+# run the test suite
+uv run pytest
+
+# lint and format
+uv run ruff check .
+uv run ruff format .
+
+# build the sdist and wheel
+uv build
+```
