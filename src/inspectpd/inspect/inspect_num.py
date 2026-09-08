@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from inspectpd.inspect._common import select_numeric, validate_frame
+from inspectpd.inspect._common import object_column, select_numeric, validate_frame
 from inspectpd.inspect_object.inspect_object import InspectFrame
 
 _HIST_BINS = 10
@@ -54,7 +54,7 @@ def inspect_num(df: pd.DataFrame) -> InspectFrame:
         out["max"] = df_num.max().to_numpy()
         out["sd"] = df_num.std().to_numpy()
     out["pcnt_na"] = 100 * df_num.isna().mean().to_numpy(dtype="float64")
-    out["hist"] = [_histogram(df_num[col]) for col in df_num.columns]
+    out["hist"] = object_column([_histogram(df_num[col]) for col in df_num.columns])
     return InspectFrame(out, inspect_type="inspect_num")
 
 

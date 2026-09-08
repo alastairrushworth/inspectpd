@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import pandas as pd
 
-from inspectpd.inspect._common import level_table, select_categorical, validate_frame
+from inspectpd.inspect._common import (
+    level_table,
+    object_column,
+    select_categorical,
+    validate_frame,
+)
 from inspectpd.inspect_object.inspect_object import InspectFrame
 
 
@@ -47,7 +52,7 @@ def inspect_cat(df: pd.DataFrame) -> InspectFrame:
             "common_pcnt": [
                 lv["pcnt"].iloc[0] if len(lv) else float("nan") for lv in levels
             ],
-            "levels": levels,
+            "levels": object_column(levels),
         }
     )
     out = out.sort_values("col_name", kind="stable").reset_index(drop=True)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from inspectpd.inspect._common import validate_frame
+from inspectpd.inspect._common import object_column, validate_frame
 from inspectpd.inspect_object.inspect_object import InspectFrame
 
 
@@ -43,7 +43,7 @@ def inspect_types(df: pd.DataFrame) -> InspectFrame:
         {
             "type": grouped.index.to_numpy(dtype=object),
             "cnt": [len(cols) for cols in grouped],
-            "col_name": grouped.to_list(),
+            "col_name": object_column(grouped.to_list()),
         }
     )
     ncols = df.shape[1]

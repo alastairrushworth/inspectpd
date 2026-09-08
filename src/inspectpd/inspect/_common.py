@@ -50,6 +50,20 @@ def select_numeric(df: pd.DataFrame) -> pd.DataFrame:
     return df.select_dtypes(include="number").astype("float64")
 
 
+def object_column(items: list[Any]) -> np.ndarray:
+    """Pack ``items`` into a 1-d object array, one element per item.
+
+    Use this to store frames or lists inside a column. Handing pandas a plain
+    list instead makes it call ``__array__`` on every element to work out a
+    dtype, which for a frame means materialising ``.values`` and, on some
+    platforms, spurious numpy warnings.
+    """
+    out = np.empty(len(items), dtype=object)
+    for i, item in enumerate(items):
+        out[i] = item
+    return out
+
+
 def level_table(series: pd.Series, *, dropna: bool) -> pd.DataFrame:
     """Tabulate the levels of ``series``.
 
