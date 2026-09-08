@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-08
+
 ### Breaking changes
 
 - `inspect_cor()`: the `pcnt_na` column is renamed `pcnt_nna`. It always
