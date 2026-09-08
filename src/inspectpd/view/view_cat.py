@@ -1,45 +1,53 @@
-import numpy as np
+"""Plot for :func:`inspectpd.inspect_cat`."""
+
+from __future__ import annotations
+
 import pandas as pd
 import plotnine as p9
 
+_NA_LABEL = "nan"
+_HIGH_CARD_LABEL = "High cardinality"
+_MIN_LABEL_PCNT = 15
 
-def view_cat(df, high_cardinality=0):
+
+def view_cat(df: pd.DataFrame, high_cardinality: int = 0) -> p9.ggplot:
+    """Stacked bars showing the relative frequency of every level per column.
+
+    Parameters
+    ----------
+    df : InspectFrame
+        Output of :func:`inspectpd.inspect_cat`.
+    high_cardinality : int, default 0
+        Pool levels that occur this many times or fewer into a single block.
+        Useful when a column has many unique or near-unique values.
+    """
     if df.shape[0] == 0:
-        raise RuntimeError("No categorical or object columns to view")
-    # extract the level frequencies from the inspect_cat df
-    levels_list = [x for x in df.levels]
-    # loop over, add extra columns
-    for i in range(len(levels_list)):
-        # put NaNs at the top of the level-list and rename to 'nan'
-        levels_list[i] = put_nan_at_top(levels_list[i])
-        # merge high cardinalities, if required
+        raise ValueError("no categorical columns to view")
+
+    tables = []
+    for col_name, levels in zip(df["col_name"], df["levels"], strict=True):
+        table = _put_nan_at_top(levels)
         if high_cardinality > 0:
-            levels_list[i] = merge_high_cardinality(levels_list[i], high_cardinality)
-        # append feature name as new column
-        levels_list[i]["feature"] = df.col_name[i]
-        # add alpha shading column, fn of frequency
-        alpha = (100 - df.levels[i].pcnt.cumsum()) / 100
-        levels_list[i]["alpha"] = 100 * (
-            (alpha - np.min(alpha)) / np.max(alpha - np.min(alpha))
-        )
-    # combine the levels into a single df
-    zz = pd.concat(levels_list).reset_index(drop=True)
-    # coerce feature columns to categorical, ensure ordering is same as in inspect_cat df
-    z_feature_order = df.col_name.to_list()
-    z_feature_order.reverse()
-    zz["feature"] = pd.Categorical(
-        zz["feature"], ordered=False, categories=z_feature_order
-    )
-    # add cumulative percentage column
-    cum_perc = zz.groupby("feature")["pcnt"].cumsum()
-    zz["cum_perc"] = cum_perc - zz.pcnt.values
-    # if any missing alphas, make 100
-    zz = zz.assign(alpha=zz.alpha.fillna(100.0))
-    # basic plot object
-    gg_out = (
-        p9.ggplot(zz, p9.aes(x="feature", y="pcnt", fill="feature", alpha="alpha"))
+            table = _merge_high_cardinality(table, high_cardinality)
+        table = table.reset_index(drop=True)
+        table["feature"] = str(col_name)
+        # alpha shading fades along the bar from the most to the least common
+        alpha = (100 - table["pcnt"].cumsum()) / 100
+        span = alpha.max() - alpha.min()
+        table["alpha"] = 100 * (alpha - alpha.min()) / span if span else 100.0
+        tables.append(table)
+    data = pd.concat(tables, ignore_index=True)
+
+    # keep the column order of the summary (reversed, because of coord_flip)
+    feature_order = [str(c) for c in df["col_name"]][::-1]
+    data["feature"] = pd.Categorical(data["feature"], categories=feature_order)
+    data["cum_perc"] = data.groupby("feature", observed=True)["pcnt"].cumsum()
+    data["cum_perc"] = data["cum_perc"] - data["pcnt"]
+
+    plot = (
+        p9.ggplot(data, p9.aes(x="feature", y="pcnt", fill="feature", alpha="alpha"))
         + p9.geom_col(position="stack", color="black")
-        + p9.guides(fill=False, alpha=False)
+        + p9.guides(fill="none", alpha="none")
         + p9.coord_flip()
         + p9.xlab("")
         + p9.ylab("")
@@ -54,86 +62,75 @@ def view_cat(df, high_cardinality=0):
             axis_text_x=p9.element_blank(),
         )
     )
+    # grey block for missing values and purple for pooled high-cardinality levels
+    null_items = data[data["value"] == _NA_LABEL]
+    if not null_items.empty:
+        plot = plot + _colour_subset(null_items, "gray", right=False)
+    hc_items = data[data["value"] == _HIGH_CARD_LABEL]
+    if high_cardinality > 0 and not hc_items.empty:
+        plot = plot + _colour_subset(hc_items, "purple")
 
-    # color NaNs with gray fill, if there are any
-    null_items = zz[zz["value"] == "nan"]
-    if null_items.shape[0] > 0:
-        gg_out = gg_out + color_subset(null_items, "gray", right=False)
-    # color high_cardinality with purple fill
-    hc_items = zz[zz["value"] == "High cardinality"]
-    if (high_cardinality > 0) & (hc_items.shape[0] > 0):
-        gg_out = gg_out + color_subset(hc_items, "purple")
-    # add text to the plot
-    # text location
-    zz = zz.assign(value=zz.value.astype(object).fillna("_nan"))
-    zz = zz.assign(text_pos=zz.cum_perc + (zz.pcnt / 2))
-    # filter out small units
-    zz = zz[zz.pcnt > 15].reset_index(drop=True)
-    if zz.shape[0] > 0:
-        # add text to plot
-        gg_out = gg_out + p9.geom_text(
-            data=zz,
+    # label the larger blocks
+    labels = data.assign(text_pos=data["cum_perc"] + data["pcnt"] / 2)
+    labels = labels[labels["pcnt"] > _MIN_LABEL_PCNT].reset_index(drop=True)
+    if not labels.empty:
+        plot = plot + p9.geom_text(
+            data=labels,
             mapping=p9.aes(x="feature", y="text_pos", label="value"),
             inherit_aes=False,
             color="white",
         )
-    return gg_out
+    return plot
 
 
-# function to combine high cardinality feature values into a single pooled value
-def merge_high_cardinality(z, card_thresh):
-    _z = z.copy()
-    z_high_card = _z.query('(cnt <= @card_thresh) & (value != "nan")')
-    z_high_card = pd.DataFrame(
+def _merge_high_cardinality(table: pd.DataFrame, threshold: int) -> pd.DataFrame:
+    """Pool the levels with ``threshold`` or fewer occurrences into one row."""
+    is_na = table["value"] == _NA_LABEL
+    rare = table[(table["cnt"] <= threshold) & ~is_na]
+    keep = table[(table["cnt"] > threshold) | is_na]
+    pooled = pd.DataFrame(
         {
-            "pcnt": z_high_card.pcnt.sum(),
-            "cnt": z_high_card.cnt.sum(),
-            "value": "High cardinality",
-        },
-        index=[0],
+            "value": [_HIGH_CARD_LABEL],
+            "pcnt": [rare["pcnt"].sum()],
+            "cnt": [rare["cnt"].sum()],
+        }
     )
-    z_low_card = _z.query('(cnt > @card_thresh) | (value == "nan")')
-    z_combined = pd.concat([z_low_card, z_high_card]).drop(columns="cnt")
-    return z_combined
+    return pd.concat([keep, pooled], ignore_index=True)
 
 
-# put NaNs at top
-def put_nan_at_top(z):
-    _z = z.copy()
-    z_nan = _z.query("value.isna()")
-    if z_nan.shape[0] > 0:
-        z_nan = pd.DataFrame(
-            {"pcnt": z_nan.pcnt.sum(), "cnt": z_nan.cnt.sum(), "value": "nan"},
-            index=[0],
-        )
-    else:
-        z_nan = pd.DataFrame({"pcnt": 0.0, "cnt": 0, "value": "nan"}, index=[0])
-    z_not_nan = _z.query("~value.isna()")
-    z_combined = pd.concat([z_nan, z_not_nan])
-    return z_combined
+def _put_nan_at_top(table: pd.DataFrame) -> pd.DataFrame:
+    """Move missing values into a single first row labelled ``"nan"``."""
+    is_na = table["value"].isna()
+    nan_row = pd.DataFrame(
+        {
+            "value": [_NA_LABEL],
+            "pcnt": [table.loc[is_na, "pcnt"].sum()],
+            "cnt": [table.loc[is_na, "cnt"].sum()],
+        }
+    )
+    rest = table.loc[~is_na, ["value", "pcnt", "cnt"]]
+    return pd.concat([nan_row, rest], ignore_index=True)
 
 
-# function to create color layers for subsets of the inspect_cat.view
-def color_subset(subset_df, fill_color, right=True):
-    # create fill block, alpha 100
-    subset_df = subset_df.assign(alpha=100).reset_index()
-    # create empty block - alpha transparent
-    xx_empty = subset_df.copy()
-    xx_empty = xx_empty.drop(["alpha", "cum_perc"], axis=1)
-    xx_empty["pcnt"] = 100 - xx_empty["pcnt"].values
-    xx_empty["alpha"] = 0
-    # combine blocks
-    xx = pd.concat([xx_empty, subset_df], sort=True)
-    # arrange by feature
-    xx = xx.sort_values(["feature", "alpha"], ascending=right).reset_index(drop=True)
-    # print(xx)
-    # create plot layer
-    subset_layer = p9.geom_col(
-        data=xx,
+def _colour_subset(subset: pd.DataFrame, fill: str, right: bool = True) -> p9.geom_col:
+    """Build a layer that recolours the given blocks of the stacked bars.
+
+    Each block is drawn as a stack of a transparent spacer and a solid block
+    so that it lands in the right place along the bar.
+    """
+    solid = subset.assign(alpha=100).reset_index(drop=True)
+    spacer = solid.drop(columns=["alpha", "cum_perc"]).assign(
+        pcnt=lambda d: 100 - d["pcnt"], alpha=0
+    )
+    blocks = pd.concat([spacer, solid], sort=True)
+    blocks = blocks.sort_values(["feature", "alpha"], ascending=right).reset_index(
+        drop=True
+    )
+    return p9.geom_col(
+        data=blocks,
         mapping=p9.aes(x="feature", y="pcnt", alpha="alpha"),
         position="stack",
-        fill=fill_color,
+        fill=fill,
         color="black",
         inherit_aes=False,
     )
-    return subset_layer
