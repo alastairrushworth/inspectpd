@@ -1,57 +1,67 @@
+"""Summary of numeric columns."""
+
+from __future__ import annotations
+
+import numpy as np
 import pandas as pd
 
-from inspectpd.inspect_object.inspect_object import inspect_object
+from inspectpd.inspect._common import object_column, select_numeric, validate_frame
+from inspectpd.inspect_object.inspect_object import InspectFrame
+
+_HIST_BINS = 10
 
 
-def inspect_num(df):
-    """
-    Summary and comparison of numeric columns
+def inspect_num(df: pd.DataFrame) -> InspectFrame:
+    """Summarise the numeric columns of a DataFrame.
+
+    Every numeric dtype is included (integer, float, and the nullable
+    ``Int64`` / ``Float64`` types); boolean columns are not.
 
     Parameters
     ----------
-
-    df: A pandas dataframe.
-
+    df : pandas.DataFrame
+        The data frame to summarise.
 
     Returns
-    ----------
+    -------
+    InspectFrame
+        One row per numeric column, in column order, with columns:
 
-    A pandas dataframe with columns:
-      + col_name: object
-        column of strings containing column names of df
-      + min, q1, median, mean, q3, max and sd: float64
-        the minimum, lower quartile, median, mean, upper quartile,
-        maximum and standard deviation for each numeric column.
-      + pcnt_na: float64
-        the percentage of each numeric feature that is missing
-      + hist: object
-        a list of tables containing the relative frequency of values
-        falling in bins determined by a set of breakpoints.
-
+        ``col_name`` : object
+            Name of the column in ``df``.
+        ``min``, ``q1``, ``median``, ``mean``, ``q3``, ``max``, ``sd`` : float64
+            Minimum, lower quartile, median, mean, upper quartile, maximum
+            and standard deviation. Access these with ``result["min"]`` and
+            so on, because ``result.min`` is the pandas method.
+        ``pcnt_na`` : float64
+            Percentage of the column that is missing.
+        ``hist`` : object
+            A frame per column with ``value`` (an interval) and ``prop``
+            (the proportion of finite values falling in it) for ten equal
+            width bins. Access it with ``result["hist"]``.
     """
-    df_num = df.select_dtypes("double")
-    # construct output dataframe
-    out = pd.DataFrame(df_num.columns, columns=["col_name"])
-    # get numerical summaries
-    out["min"] = df_num.min().values
-    out["q1"] = df_num.quantile(0.25).values
-    out["median"] = df_num.median().values
-    out["mean"] = df_num.mean().values
-    out["q3"] = df_num.quantile(0.75).values
-    out["max"] = df_num.max().values
-    out["sd"] = df_num.std().values
-    out["pcnt_na"] = df_num.isnull().mean().values * 100
-    # add histograms to each row of out
-    # name the column hist
-    hist_list = []
-    for num_col in df_num.columns:
-        zbins = pd.DataFrame(pd.cut(df_num[num_col], bins=10).value_counts(num_col))
-        zbins = zbins.reset_index(drop=False)
-        zbins.columns = ["value", "prop"]
-        zbins.sort_values("value")
-        hist_list.append(zbins)
-    # append the histogram lists as a new column
-    out["hist"] = hist_list
-    # subclass output, adds plot methods
-    out = inspect_object(out, my_attr="inspect_num")
-    return out
+    df = validate_frame(df)
+    df_num = select_numeric(df)
+    out = pd.DataFrame({"col_name": df_num.columns.to_numpy(dtype=object)})
+    # infinite values make the mean and sd undefined; numpy would warn about
+    # the resulting inf - inf, but NaN in the output already says it all
+    with np.errstate(invalid="ignore"):
+        out["min"] = df_num.min().to_numpy()
+        out["q1"] = df_num.quantile(0.25).to_numpy()
+        out["median"] = df_num.median().to_numpy()
+        out["mean"] = df_num.mean().to_numpy()
+        out["q3"] = df_num.quantile(0.75).to_numpy()
+        out["max"] = df_num.max().to_numpy()
+        out["sd"] = df_num.std().to_numpy()
+    out["pcnt_na"] = 100 * df_num.isna().mean().to_numpy(dtype="float64")
+    out["hist"] = object_column([_histogram(df_num[col]) for col in df_num.columns])
+    return InspectFrame(out, inspect_type="inspect_num")
+
+
+def _histogram(series: pd.Series) -> pd.DataFrame:
+    """Relative frequency of the finite values of ``series`` in equal-width bins."""
+    finite = series[np.isfinite(series)]
+    if finite.empty:
+        return pd.DataFrame({"value": pd.Series(dtype=object), "prop": []})
+    props = pd.cut(finite, bins=_HIST_BINS).value_counts(normalize=True, sort=False)
+    return pd.DataFrame({"value": props.index, "prop": props.to_numpy()})

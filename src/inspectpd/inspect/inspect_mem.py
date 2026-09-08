@@ -1,54 +1,61 @@
-from inspectpd.inspect_object.inspect_object import inspect_object
+"""Summary of memory usage by column."""
+
+from __future__ import annotations
+
+import pandas as pd
+
+from inspectpd.inspect._common import validate_frame
+from inspectpd.inspect_object.inspect_object import InspectFrame
+
+_UNITS = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"]
 
 
-# inspect_mem
-def inspect_mem(df):
-    """
-    Summary of memory usage of dataframe columns
+def inspect_mem(df: pd.DataFrame) -> InspectFrame:
+    """Summarise the memory used by each column of a DataFrame.
 
     Parameters
     ----------
-
-    df: A pandas dataframe.
+    df : pandas.DataFrame
+        The data frame to summarise.
 
     Returns
-    ----------
+    -------
+    InspectFrame
+        One row per column, sorted by ``bytes`` descending, with columns:
 
-    A pandas dataframe with columns:
-
-      + col_name: object
-        column of strings containing column names of df
-      + bytes: int64
-        integer column containing the number of bytes in each column of df
-      + size: object
-        column of strings containing display-friendly memory usage in SI units
-        of each column.
-      + pcnt: float64
-        the percentage of the dataframe's total memory footprint used by each
-        column.
+        ``col_name`` : object
+            Name of the column in ``df``.
+        ``bytes`` : int64
+            Memory used by the column in bytes (``deep=True`` accounting).
+        ``size`` : object
+            The same figure as a display string in binary units (KiB, MiB
+            and so on). Access it with ``result["size"]``, because
+            ``result.size`` is the pandas element count.
+        ``pcnt`` : float64
+            Percentage of the frame's total memory used by the column.
     """
-
-    out = (
-        df.memory_usage(index=False, deep=True)
-        .sort_values(ascending=False)
-        .reset_index(drop=False)
+    df = validate_frame(df)
+    usage = df.memory_usage(index=False, deep=True)
+    total = usage.sum()
+    out = pd.DataFrame(
+        {
+            "col_name": df.columns.to_numpy(dtype=object),
+            "bytes": usage.to_numpy(),
+        }
     )
-    out.columns = ["col_name", "bytes"]
-    # add printable size strings
-    out = out.assign(size=out["bytes"].apply(format_size))
-    # add percentage of total
-    out = out.assign(pcnt=100 * out["bytes"] / out["bytes"].sum())
-    # add type attribute to output
-    out = inspect_object(out, my_attr="inspect_mem")
-    return out
+    out["size"] = [format_size(int(b)) for b in out["bytes"]]
+    out["pcnt"] = 100 * out["bytes"] / total if total else float("nan")
+    out = out.sort_values("bytes", ascending=False, kind="stable").reset_index(
+        drop=True
+    )
+    return InspectFrame(out, inspect_type="inspect_mem")
 
 
-# function for making nice printable object sizes
-def format_size(num):
-    for unit in ["", "K", "M", "G", "T", "P", "E", "Z", "Y"]:
-        if num < 1024.0:
-            if unit == "":
-                return f"{num:3.0f} {unit}B"
-            else:
-                return f"{num:3.2f} {unit}B"
-        num /= 1024.0
+def format_size(num_bytes: float) -> str:
+    """Format a byte count as a short string in binary units, e.g. ``"1.50 KiB"``."""
+    size = float(num_bytes)
+    for unit in _UNITS[:-1]:
+        if size < 1024.0:
+            return f"{size:3.0f} {unit}" if unit == "B" else f"{size:3.2f} {unit}"
+        size /= 1024.0
+    return f"{size:3.2f} {_UNITS[-1]}"

@@ -23,28 +23,30 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering",
+    "Typing :: Typed",
 ]
+# Floors are the oldest versions exercised by the "min-deps" CI job.
 dependencies = [
-    "numpy",
-    "pandas",
-    "plotnine",
-    "scipy",
+    "numpy>=1.26",
+    "pandas>=2.2.2",
+    "plotnine>=0.13",
+    "scipy>=1.11.2",
 ]
-
-[project.optional-dependencies]
-test = ["pytest", "pytest-cov"]
 
 [project.urls]
 Homepage = "https://github.com/alastairrushworth/inspectpd"
 Repository = "https://github.com/alastairrushworth/inspectpd"
 Issues = "https://github.com/alastairrushworth/inspectpd/issues"
+Changelog = "https://github.com/alastairrushworth/inspectpd/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
     "pytest",
     "pytest-cov",
     "ruff>=0.6",
+    "mypy>=1.10",
     "pre-commit",
     "build",
 ]
@@ -52,15 +54,24 @@ dev = [
 [tool.hatch.version]
 source = "vcs"
 
+[tool.hatch.version.raw-options]
+# Only tags that look like v1.2.3 are release tags. Without this, any other
+# tag on the same commit (e.g. a typo such as "v.0.2.0") makes the build fail
+# with "Can't parse version from tag".
+git_describe_command = ["git", "describe", "--dirty", "--tags", "--long", "--match", "v[0-9]*"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/inspectpd"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/inspectpd", "tests", "README.md", "LICENSE.txt"]
+include = ["src/inspectpd", "tests", "README.md", "LICENSE.txt", "CHANGELOG.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
+# Any warning is a test failure: deprecations in pandas or plotnine must be
+# dealt with before they become errors in a future release.
+filterwarnings = ["error"]
 
 [tool.ruff]
 line-length = 88
@@ -74,10 +85,33 @@ select = [
     "I",   # isort
     "UP",  # pyupgrade
     "B",   # flake8-bugbear
+    "N",   # pep8-naming
+    "A",   # flake8-builtins (shadowed builtins)
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific rules
+    "PT",  # flake8-pytest-style
+    "D",   # pydocstyle
 ]
 # The formatter owns line length; E501 otherwise only fires on un-wrappable
 # comments, docstrings and long literals that ruff-format leaves untouched.
 ignore = ["E501"]
 
+[tool.ruff.lint.per-file-ignores]
+# Tests document themselves through their names.
+"tests/*" = ["D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
 [tool.ruff.lint.isort]
 known-first-party = ["inspectpd"]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["src"]
+strict_optional = true
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+ignore_missing_imports = true
