@@ -62,6 +62,11 @@ def _histogram(series: pd.Series) -> pd.DataFrame:
     """Relative frequency of the finite values of ``series`` in equal-width bins."""
     finite = series[np.isfinite(series)]
     if finite.empty:
-        return pd.DataFrame({"value": pd.Series(dtype=object), "prop": []})
+        return pd.DataFrame({"value": pd.IntervalIndex([]), "prop": []})
     props = pd.cut(finite, bins=_HIST_BINS).value_counts(normalize=True, sort=False)
-    return pd.DataFrame({"value": props.index, "prop": props.to_numpy()})
+    # Store the bins as a plain interval column rather than the categorical
+    # index value_counts returns: categorical interval columns get hashed by
+    # pandas during concat and dtype inference, which is slow and, with some
+    # numpy builds, emits spurious RuntimeWarnings.
+    bins = props.index.categories.take(props.index.codes)
+    return pd.DataFrame({"value": bins, "prop": props.to_numpy()})
