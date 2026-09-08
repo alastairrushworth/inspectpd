@@ -1,51 +1,53 @@
-import numpy as np
+"""Summary of column dtypes."""
+
+from __future__ import annotations
+
 import pandas as pd
 
-from inspectpd.inspect_object.inspect_object import inspect_object
+from inspectpd.inspect._common import object_column, validate_frame
+from inspectpd.inspect_object.inspect_object import InspectFrame
 
 
-# inspect_types
-def inspect_types(df):
-    """
-    Summary and comparison of numeric columns
+def inspect_types(df: pd.DataFrame) -> InspectFrame:
+    """Summarise the column dtypes of a DataFrame.
 
     Parameters
     ----------
-
-    df: A pandas dataframe.
+    df : pandas.DataFrame
+        The data frame to summarise.
 
     Returns
-    ----------
+    -------
+    InspectFrame
+        One row per distinct dtype, sorted by ``cnt`` descending, with
+        columns:
 
-    A pandas dataframe with columns:
-      + type: object
-        A column of strings containing the column types in df.
-      + cnt: int64
-        Integer count of each type found in df.
-      + pcnt: float64
-        Percentage of all columns with each type.
-      + col_name: object
-        Column of lists containing columns names with each type.
+        ``type`` : object
+            The dtype as a string, for example ``"float64"`` or ``"str"``.
+        ``cnt`` : int64
+            Number of columns with that dtype.
+        ``pcnt`` : float64
+            Percentage of all columns with that dtype.
+        ``col_name`` : object
+            List of the column names with that dtype.
     """
-
-    # column types in the df
-    col_types = df.dtypes.reset_index(drop=False)
-    col_types.columns = ["column", "type"]
-    # get totals for each type
-    out = pd.DataFrame(col_types.type.value_counts()).reset_index(drop=False)
-    # get percentage of columns with each type
-    out["pcnt"] = 100 * out["count"] / np.sum(out["count"])
-    # rename columns
-    out = out.rename(columns={"count": "cnt"})
-    # get names of columns with each type
-    col_list = []
-    for j in out.type:
-        col_list.append(
-            [col_types.column[i] for i, e in enumerate(col_types.type) if e == j]
-        )
-    # add column names as new column
-    out["col_name"] = col_list
-    out = out.sort_values("pcnt", ascending=False)
-    # subclass output, adds plot methods
-    out = inspect_object(out, my_attr="inspect_types")
-    return out
+    df = validate_frame(df)
+    types = pd.DataFrame(
+        {
+            "col_name": df.columns.to_numpy(dtype=object),
+            "type": [str(dtype) for dtype in df.dtypes],
+        }
+    )
+    grouped = types.groupby("type", sort=False)["col_name"].agg(list)
+    out = pd.DataFrame(
+        {
+            "type": grouped.index.to_numpy(dtype=object),
+            "cnt": [len(cols) for cols in grouped],
+            "col_name": object_column(grouped.to_list()),
+        }
+    )
+    ncols = df.shape[1]
+    out["pcnt"] = 100 * out["cnt"] / ncols if ncols else float("nan")
+    out = out[["type", "cnt", "pcnt", "col_name"]]
+    out = out.sort_values("cnt", ascending=False, kind="stable").reset_index(drop=True)
+    return InspectFrame(out, inspect_type="inspect_types")

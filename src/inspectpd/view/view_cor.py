@@ -1,45 +1,55 @@
+"""Plot for :func:`inspectpd.inspect_cor`."""
+
+from __future__ import annotations
+
 import numpy as np
+import pandas as pd
 import plotnine as p9
 
+_COLOURS = {"yes": "#3b5bdb", "no": "#abaeb3"}
 
-def view_cor(df, max=20):
+
+def view_cor(df: pd.DataFrame, max_pairs: int | None = 20) -> p9.ggplot:
+    """Confidence-interval bars for the strongest correlations.
+
+    Parameters
+    ----------
+    df : InspectFrame
+        Output of :func:`inspectpd.inspect_cor`.
+    max_pairs : int or None, default 20
+        Draw at most this many pairs, strongest first. ``None`` draws all.
+    """
     if df.shape[0] == 0:
-        raise RuntimeError("No numeric correlations to show")
-    # drop missing correlations
-    out = df[~df["corr"].isnull()]
-    if out.shape[0] == 0:
-        raise RuntimeError("All correlations are NaN")
-    # filter to 'max' pairs
-    if max is not None:
-        out = out.iloc[:max, :]
-    # add pair column
-    out = out.assign(pair=out.col_1 + "&" + out.col_2)
-    # add a sign column
-    sign = ((out["corr"] > 0).astype("int")).to_list()
-    sign = [["Negative", "Positive"][i] for i in sign]
-    out["sign"] = sign
-    # add ind column
-    out["ind"] = [out.shape[0] - i for i in range(out.shape[0])]
-    # plot using bands
-    ggplt = (
-        p9.ggplot(data=out, mapping=p9.aes(x="pair", y="corr"))
-        + p9.geom_hline(yintercept=0, linetype="dashed", color="#c2c6cc")
-        + p9.geom_rect(
-            alpha=0.4,
-            xmin=out.ind.values - 0.4,
-            xmax=out.ind.values + 0.4,
-            ymin=out.lower.values,
-            ymax=out.upper.values,
-            fill=[["b", "#abaeb3"][int(x > 0.05)] for x in out.p_value],
-        )
-        + p9.geom_segment(
-            x=out.ind.values - 0.4,
-            y=out["corr"].values,
-            xend=out.ind.values + 0.4,
-            yend=out["corr"].values,
-        )
-        + p9.coord_flip()
-        + p9.ylim(np.min(out.lower.values), np.max(out.upper.values))
-        + p9.labs(x="", y="Correlation")
+        raise ValueError("no numeric column pairs to view")
+    data = df[df["corr"].notna()]
+    if data.empty:
+        raise ValueError("all correlations are NaN")
+    if max_pairs is not None:
+        data = data.iloc[:max_pairs]
+
+    params = getattr(df, "inspect_params", None) or {}
+    alpha = params.get("alpha", 0.05)
+
+    pairs = [f"{a} & {b}" for a, b in zip(data["col_1"], data["col_2"], strict=True)]
+    data = pd.DataFrame(
+        {
+            # reversed so the strongest pair sits at the top after coord_flip
+            "pair": pd.Categorical(pairs, categories=pairs[::-1], ordered=True),
+            "corr": data["corr"].to_numpy(),
+            # pairs without an interval (too few observations) draw as a line
+            "lower": data["lower"].fillna(data["corr"]).to_numpy(),
+            "upper": data["upper"].fillna(data["corr"]).to_numpy(),
+            "significant": np.where(data["p_value"] < alpha, "yes", "no"),
+        }
     )
-    return ggplt
+    return (
+        p9.ggplot(
+            data,
+            p9.aes(x="pair", y="corr", ymin="lower", ymax="upper", fill="significant"),
+        )
+        + p9.geom_hline(yintercept=0, linetype="dashed", color="#c2c6cc")
+        + p9.geom_crossbar(width=0.8, alpha=0.4, color="black")
+        + p9.scale_fill_manual(values=_COLOURS, limits=["yes", "no"], drop=False)
+        + p9.coord_flip()
+        + p9.labs(x="", y="Correlation", fill=f"p < {alpha:g}")
+    )

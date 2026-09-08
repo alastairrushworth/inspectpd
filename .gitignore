@@ -1,19 +1,8 @@
-.Rproj.user
-.Rhistory
-.RData
-.Ruserdata
-*.png
+# Python
 __pycache__/
 *.py[cod]
-main.py
-*.Rmd
-*.png
-*.pdf
-example.py
-.ipynb_checkpoints
-*.ipynb
 
-# Python packaging / build artifacts
+# Packaging / build artifacts
 build/
 dist/
 *.egg-info/
@@ -23,13 +12,22 @@ dist/
 .venv/
 venv/
 
-# hatch-vcs writes this at build time — never commit it
+# hatch-vcs writes this at build time; never commit it
 src/inspectpd/_version.py
 
-# Tooling caches
+# Tooling caches and reports
 .ruff_cache/
 .pytest_cache/
 .mypy_cache/
 .coverage
 coverage.xml
 htmlcov/
+
+# Local scratch files and notebooks
+main.py
+example.py
+*.ipynb
+.ipynb_checkpoints/
+
+# Local editor / assistant settings
+.claude/settings.local.json

@@ -4,7 +4,7 @@ on:
   push:
     branches: ["main"]
     # Run the full test matrix on release tags too, so a broken release is
-    # caught by the same CI that guards main — before the release job fires.
+    # caught by the same CI that guards main - before the release job fires.
     tags: ["v[0-9]+.*"]
   pull_request:
     branches: ["main"]
@@ -13,16 +13,19 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true
 
-      - name: Run pre-commit (ruff lint + format)
+      - name: Check the lockfile is up to date
+        run: uv lock --check
+
+      - name: Run pre-commit (ruff lint + format, mypy)
         run: uvx pre-commit run --all-files --show-diff-on-failure
 
   test:
@@ -30,15 +33,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true
 
@@ -49,37 +52,61 @@ jobs:
         run: uv sync --python ${{ matrix.python-version }}
 
       - name: Test import (warnings as errors)
-        run: uv run --python ${{ matrix.python-version }} python -c "import warnings; warnings.filterwarnings('error'); import inspectpd"
+        run: uv run --python ${{ matrix.python-version }} python -W error -c "import inspectpd"
 
       - name: Run tests
-        run: uv run --python ${{ matrix.python-version }} pytest --cov=inspectpd tests/ --cov-report=xml
+        # pyproject.toml turns every warning into a test failure
+        run: uv run --python ${{ matrix.python-version }} pytest --cov=inspectpd --cov-report=xml
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           files: ./coverage.xml
           fail_ci_if_error: false
 
-  build:
+  min-deps:
+    # The oldest versions allowed by the floors in pyproject.toml.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.0.1
+        with:
+          enable-cache: true
+
+      - name: Install the project with the lowest allowed dependency versions
+        run: |
+          uv venv --python 3.10
+          uv pip install --resolution lowest-direct -e .
+          uv pip install pytest
+
+      - name: Run tests
+        run: uv run --no-sync pytest
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true
 
       - name: Build sdist and wheel
         run: uv build
 
-      - name: Verify wheel contents (subpackages + data files)
+      - name: Verify wheel contents (subpackages, data files, typing marker)
         run: |
           python -m zipfile -l dist/*.whl
           for path in \
             inspectpd/__init__.py \
+            inspectpd/py.typed \
             inspectpd/inspect/inspect_cat.py \
             inspectpd/view/view_cat.py \
             inspectpd/inspect_object/inspect_object.py \
@@ -95,4 +122,4 @@ jobs:
           python -m venv /tmp/wheeltest
           /tmp/wheeltest/bin/pip install --quiet dist/*.whl
           cd /tmp
-          /tmp/wheeltest/bin/python -c "import inspectpd as i; print(i.starwars.shape); i.starwars.inspect_cat()"
+          /tmp/wheeltest/bin/python -W error -c "import inspectpd as i; print(i.__version__, i.starwars.shape); i.starwars.inspect_cat()"
