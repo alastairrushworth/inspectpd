@@ -1,99 +1,145 @@
+"""Tidy pairwise correlations between numeric columns."""
+
+from __future__ import annotations
+
+from collections.abc import Hashable
+
 import numpy as np
-import scipy.stats as st
+import pandas as pd
 
-from inspectpd.inspect_object.inspect_object import inspect_object
+from inspectpd.inspect._common import select_numeric, validate_frame
+from inspectpd.inspect_object.inspect_object import InspectFrame
+
+_METHODS = ("pearson", "kendall", "spearman")
+_COLUMNS = ["col_1", "col_2", "corr", "p_value", "lower", "upper", "pcnt_nna"]
 
 
-def inspect_cor(df, method="pearson", alpha=0.05, with_col=None):
-    """
-    Tidy correlation coefficients for numeric dataframe columns.
+def inspect_cor(
+    df: pd.DataFrame,
+    method: str = "pearson",
+    alpha: float = 0.05,
+    with_col: Hashable | None = None,
+) -> InspectFrame:
+    """Compute tidy correlation coefficients between numeric columns.
+
+    Correlations use pairwise complete observations. Confidence intervals
+    and p-values come from the Fisher z transformation, with the standard
+    error appropriate to ``method`` (Pearson: ``1/sqrt(n-3)``; Spearman:
+    ``sqrt((1 + r^2/2)/(n-3))``; Kendall: ``sqrt(0.437/(n-4))``). Pairs with
+    too few complete observations for that standard error get ``NaN``
+    p-values and intervals.
 
     Parameters
     ----------
-
-    df: A pandas dataframe.
-
-    method: str, default 'pearson'
-      a character string indicating which type of correlation
-      coefficient to use, one of "pearson", "kendall", or "spearman".
-
-    alpha: float, default 0.05.
-      Alpha level for correlation confidence intervals. Defaults to 0.05.
-
-    with_col: str, default None
-      Column name to filter correlations by.  Uses pandas .withcorr() under
-      the hood instead of .corr(), which can save time for large data sets.
+    df : pandas.DataFrame
+        The data frame to summarise.
+    method : {"pearson", "kendall", "spearman"}, default "pearson"
+        Correlation coefficient to compute.
+    alpha : float, default 0.05
+        Significance level for the confidence intervals, so the default gives
+        95% intervals. Also used by :meth:`InspectFrame.view` to colour pairs.
+    with_col : hashable, optional
+        Restrict the output to correlations between this numeric column and
+        every other numeric column. Uses ``DataFrame.corrwith`` instead of
+        the full matrix, which is faster on wide frames.
 
     Returns
-    ----------
+    -------
+    InspectFrame
+        One row per pair of numeric columns, sorted by absolute correlation
+        descending, with columns:
 
-    A pandas dataframe with columns
-      + col_1, co1_2: object
-        character columns containing names of numeric columns in df1.
-      + corr: float64
-        columns of correlation coefficients
-      + p_value: float64
-        p-value associated with a test where the null hypothesis is
-        that the numeric pair have 0 correlation.
-      + lower, upper: float64
-        lower and upper values of the confidence interval for the correlations.
-      + pcnt_na:
-        the number of pairs of observations that were non missing for each
-        pair of columns. The correlation calculation used by .inspect_cor()
-        uses only pairwise complete observations.
+        ``col_1``, ``col_2`` : object
+            Names of the two columns.
+        ``corr`` : float64
+            The correlation coefficient. Access it with ``result["corr"]``,
+            because ``result.corr`` is the pandas method.
+        ``p_value`` : float64
+            Two-sided p-value for the null hypothesis of zero correlation.
+        ``lower``, ``upper`` : float64
+            Confidence interval for the correlation.
+        ``pcnt_nna`` : float64
+            Percentage of rows where both columns are non-missing.
+
+    Raises
+    ------
+    ValueError
+        If ``method`` is unknown, ``alpha`` is outside ``(0, 1)``, or
+        ``with_col`` is not a numeric column of ``df``.
     """
-    df_num = df.select_dtypes("number").copy()
-    if with_col is None:
-        out = df_num.corr(method=method)
-        # get the number of variables
-        nvarb = out.shape[0]
-        # unpivot the correlation matrix
-        out = out.unstack().reset_index(drop=False)
-        # rename columns
-        out.columns = ["col_1", "col_2", "corr"]
-        # row index of off diagonal elements
-        inds = [(np.arange(i + 1) + i * nvarb).tolist() for i in range(nvarb)]
-        inds = [j for i in inds for j in i]
-        # drop off diagonals
-        out = out[~out.index.isin(inds)].reset_index(drop=True)
-    else:
-        out = df_num.corrwith(df_num[with_col]).reset_index(drop=False)
-        out["col_2"] = with_col
-        # rename columns and reorder
-        out.columns = ["col_1", "corr", "col_2"]
-        out = out[["col_1", "col_2", "corr"]]
+    df = validate_frame(df)
+    if method not in _METHODS:
+        raise ValueError(f"method must be one of {_METHODS}, got {method!r}")
+    if not 0 < alpha < 1:
+        raise ValueError(f"alpha must be strictly between 0 and 1, got {alpha!r}")
+    df_num = select_numeric(df)
+    nrow = df.shape[0]
+    params = {"method": method, "alpha": alpha, "with_col": with_col}
 
-    # remove self-correlations
-    out = out.query("col_1 != col_2").reset_index(drop=True)
-    # get pairwise non-na
-    df_null = 1 - df_num.isnull().astype("int")
-    nna_mat = df_null.transpose().dot(df_null)
-    nna_df = nna_mat.unstack().reset_index(drop=False)
-    nna_df.columns = ["col_1", "col_2", "nna"]
-    # add standard errors
-    nna_df = nna_df.assign(se=(1 / np.sqrt(nna_df.nna - 3)))
-    nna_df = nna_df.assign(pcnt_na=100 * nna_df.nna / df.shape[0]).drop("nna", axis=1)
-    # join pairwise nna to the output df
-    out = out.merge(nna_df, how="left", on=["col_1", "col_2"])
-    out["p_value"] = 2 * st.norm.cdf(-np.abs(out["corr"].values / out.se))
-    # swicth off divide by zero error pinged by numpy with arctans
-    np.seterr(all="ignore")
-    out["lower"] = np.tanh(
-        np.arctanh(out["corr"].values) - st.norm.ppf(1 - alpha / 2) * out.se
-    )
-    out["upper"] = np.tanh(
-        np.arctanh(out["corr"].values) + st.norm.ppf(1 - alpha / 2) * out.se
-    )
-    np.seterr(all="warn")
-    # sort by absolute value of corr
+    if with_col is None:
+        cor = df_num.corr(method=method)
+        i, j = np.triu_indices(cor.shape[0], k=1)
+        out = pd.DataFrame(
+            {
+                "col_1": cor.index.to_numpy(dtype=object)[i],
+                "col_2": cor.columns.to_numpy(dtype=object)[j],
+                "corr": cor.to_numpy()[i, j],
+            }
+        )
+    else:
+        if with_col not in df_num.columns:
+            raise ValueError(
+                f"with_col={with_col!r} is not a numeric column of the data frame"
+            )
+        others = df_num.drop(columns=[with_col])
+        cor = others.corrwith(df_num[with_col], method=method)
+        out = pd.DataFrame(
+            {
+                "col_1": cor.index.to_numpy(dtype=object),
+                "col_2": with_col,
+                "corr": cor.to_numpy(dtype="float64"),
+            }
+        )
+    if out.empty:
+        return InspectFrame(
+            pd.DataFrame(columns=_COLUMNS),
+            inspect_type="inspect_cor",
+            inspect_params=params,
+        )
+
+    # number of pairwise complete observations for each pair
+    present = df_num.notna().astype("int64")
+    nna = present.T.dot(present)
+    out["n"] = [nna.at[a, b] for a, b in zip(out["col_1"], out["col_2"], strict=True)]
+    out["pcnt_nna"] = 100 * out["n"] / nrow if nrow else np.nan
+
+    # Fisher z based p-values and confidence intervals
+    from scipy import stats  # deferred: scipy.stats is slow to import
+
+    r = out["corr"].to_numpy(dtype="float64")
+    n = out["n"].to_numpy(dtype="float64")
+    with np.errstate(all="ignore"):
+        se = _fisher_se(r, n, method)
+        z = np.arctanh(r)
+        zcrit = stats.norm.ppf(1 - alpha / 2)
+        out["p_value"] = 2 * stats.norm.sf(np.abs(z) / se)
+        out["lower"] = np.tanh(z - zcrit * se)
+        out["upper"] = np.tanh(z + zcrit * se)
+
     out = (
-        out.assign(abs_cor=np.abs(out["corr"].values))
-        .sort_values("abs_cor", ascending=False)
-        .drop(["abs_cor", "se"], axis=1)
-        .reset_index(drop=True)
+        out.assign(_abs=out["corr"].abs())
+        .sort_values("_abs", ascending=False, kind="stable", na_position="last")
+        .reset_index(drop=True)[_COLUMNS]
     )
-    # change order of output columns
-    out = out[["col_1", "col_2", "corr", "p_value", "lower", "upper", "pcnt_na"]]
-    # add type attribute to output
-    out = inspect_object(out, my_attr="inspect_cor")
-    return out
+    return InspectFrame(out, inspect_type="inspect_cor", inspect_params=params)
+
+
+def _fisher_se(r: np.ndarray, n: np.ndarray, method: str) -> np.ndarray:
+    """Return the standard error of the Fisher z transformed coefficient."""
+    if method == "pearson":
+        se = 1 / np.sqrt(n - 3)
+    elif method == "spearman":
+        se = np.sqrt((1 + r**2 / 2) / (n - 3))
+    else:  # kendall
+        se = np.sqrt(0.437 / (n - 4))
+    return np.where(np.isfinite(se), se, np.nan)

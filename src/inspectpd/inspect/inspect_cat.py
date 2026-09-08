@@ -1,56 +1,54 @@
-import numpy as np
+"""Summary of the levels found in categorical columns."""
+
+from __future__ import annotations
+
 import pandas as pd
 
-from inspectpd.inspect_object.inspect_object import inspect_object
+from inspectpd.inspect._common import level_table, select_categorical, validate_frame
+from inspectpd.inspect_object.inspect_object import InspectFrame
 
 
-# inspect_cat
-def inspect_cat(df):
-    """
-    Summary and comparison of the levels in categorical columns
+def inspect_cat(df: pd.DataFrame) -> InspectFrame:
+    """Summarise the levels in the categorical columns of a DataFrame.
+
+    Columns with ``category``, ``object``, ``string``/``str``, ``bool`` or
+    ``boolean`` dtype are included. Missing values are counted as a level.
 
     Parameters
     ----------
-
-    df: A pandas dataframe.
+    df : pandas.DataFrame
+        The data frame to summarise.
 
     Returns
-    ----------
+    -------
+    InspectFrame
+        One row per categorical column, sorted by column name, with columns:
 
-    A pandas dataframe with columns:
-      + col_name: object
-        column of strings containing column names of df
-      + cnt: int64
-        integer column containing count of unique levels
-        found in each column of df.
-      + common: object
-        column of strings containing the name of the most common level
-      + common_pcnt: float64
-        the percentage of each column occupied by the most common level
-        shown in common.
-      + levels: object
-        a list containing relative frequency dataframes for each column in df.
+        ``col_name`` : object
+            Name of the column in ``df``.
+        ``cnt`` : int64
+            Number of unique levels (including missing, if present).
+        ``common`` : object
+            The most common level.
+        ``common_pcnt`` : float64
+            Percentage of rows occupied by the most common level.
+        ``levels`` : object
+            A frame per column with ``value``, ``pcnt`` and ``cnt`` for every
+            level, most common first. Access it with ``result["levels"]``.
     """
-
-    # get the string / categorical columns
-    df_cat = df.select_dtypes(["category", "object"])
-    # new df with columns names as first col
-    out = pd.DataFrame(df_cat.columns, columns=["col_name"])
-    # tabulate values in each column
-    levels_list = []
-    for col in df_cat.columns:
-        col_vals = df_cat[col].value_counts(dropna=False).reset_index(drop=False)
-        col_vals.columns = ["value", "cnt"]
-        col_vals["pcnt"] = 100 * col_vals.cnt / np.sum(col_vals.cnt)
-        col_vals = col_vals.sort_values(["pcnt"], ascending=False)
-        col_vals = col_vals[["value", "pcnt", "cnt"]]
-        levels_list.append(col_vals)
-    # number of unique values per column
-    out["cnt"] = [x.shape[0] for x in levels_list]
-    out["common"] = [x.value[0] for x in levels_list]
-    out["common_pcnt"] = [x.pcnt[0] for x in levels_list]
-    out["levels"] = levels_list
-    out = out.sort_values("col_name").reset_index(drop=True)
-    # subclass output, adds plot methods
-    out = inspect_object(out, my_attr="inspect_cat")
-    return out
+    df = validate_frame(df)
+    df_cat = select_categorical(df)
+    levels = [level_table(df_cat[col], dropna=False) for col in df_cat.columns]
+    out = pd.DataFrame(
+        {
+            "col_name": df_cat.columns.to_numpy(dtype=object),
+            "cnt": [len(lv) for lv in levels],
+            "common": [lv["value"].iloc[0] if len(lv) else None for lv in levels],
+            "common_pcnt": [
+                lv["pcnt"].iloc[0] if len(lv) else float("nan") for lv in levels
+            ],
+            "levels": levels,
+        }
+    )
+    out = out.sort_values("col_name", kind="stable").reset_index(drop=True)
+    return InspectFrame(out, inspect_type="inspect_cat")
