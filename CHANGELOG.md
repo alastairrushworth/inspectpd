@@ -20,6 +20,8 @@ All notable changes to this project are documented here. The format follows
   `Int64`/`Float64`); it previously only summarised float64 columns.
 - `inspect_cat()` and `inspect_imb()` now include boolean columns and the
   nullable `string` dtype alongside `category`, `object` and `str` columns.
+- `inspect_num()`: the `value` column of each `hist` table has interval dtype
+  rather than being a categorical of intervals.
 - `inspect_mem()`: the `size` column uses binary unit labels (`KiB`, `MiB`)
   to match the 1024-based arithmetic it always used.
 - Inputs must be data frames with unique column names; anything else raises

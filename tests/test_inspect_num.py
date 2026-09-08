@@ -68,3 +68,11 @@ def test_constant_missing_and_infinite_columns():
     assert shapes == [(10, 2), (0, 2), (10, 2)]
     # only the finite values contribute to the histogram
     assert np.isclose(out.loc["inf", "hist"]["prop"].sum(), 1)
+
+
+def test_histogram_bins_are_interval_dtype_not_categorical(tdf):
+    for hist in tdf.inspect_num()["hist"]:
+        assert isinstance(hist["value"].dtype, pd.IntervalDtype)
+    empty = pd.DataFrame({"x": [np.nan] * 3}).inspect_num()["hist"][0]
+    assert isinstance(empty["value"].dtype, pd.IntervalDtype)
+    assert empty.empty
