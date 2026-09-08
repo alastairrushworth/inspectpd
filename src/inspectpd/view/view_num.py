@@ -11,8 +11,12 @@ def view_num(df: pd.DataFrame) -> p9.ggplot:
     if df.shape[0] == 0:
         raise ValueError("no numeric columns to view")
     # copy each histogram so the caller's summary is left untouched
+    # Bins become plain Python strings. Doing this in Python rather than with
+    # astype(str) avoids a numpy object-to-string cast, which numpy 1.26 on
+    # some Linux CPUs answers with a spurious "invalid value encountered in
+    # cast" RuntimeWarning.
     tables = [
-        hist.assign(value=hist["value"].astype(str), groups=str(name))
+        hist.assign(value=[str(v) for v in hist["value"]], groups=str(name))
         for name, hist in zip(df["col_name"], df["hist"], strict=True)
         if not hist.empty
     ]
