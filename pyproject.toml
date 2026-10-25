@@ -7,7 +7,7 @@ name = "inspectpd"
 dynamic = ["version"]
 description = "Inspection, comparison and visualisation of pandas data frames"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE.txt"]
 authors = [
@@ -19,7 +19,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -31,7 +30,7 @@ classifiers = [
 dependencies = [
     "numpy>=1.26",
     "pandas>=2.2.2",
-    "plotnine>=0.13",
+    "plotnine>=0.15",
     "scipy>=1.11.2",
 ]
 
@@ -75,7 +74,7 @@ filterwarnings = ["error"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py311"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
@@ -107,7 +106,7 @@ convention = "numpy"
 known-first-party = ["inspectpd"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 files = ["src"]
 strict_optional = true
 check_untyped_defs = true

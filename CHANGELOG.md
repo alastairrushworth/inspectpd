@@ -5,6 +5,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Python 3.10 is no longer supported (it reaches end of life in October 2026);
+  the minimum is now 3.11. Upstream security fixes in Pillow, filelock and
+  virtualenv are 3.11+ only.
+- Minimum plotnine is now 0.15; earlier releases fail to import with
+  matplotlib 3.11.
+
 ## [0.3.0] - 2026-09-08
 
 ### Breaking changes
